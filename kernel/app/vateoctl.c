@@ -21,6 +21,11 @@ int main(int argc, char** argv){
         return 0;
     }
 
+    if(argc==1){
+        print_help();
+        return 0;
+    }
+
     if(!strcmp(argv[1],"help")) print_help();
     else if(!strcmp(argv[1],"test-ioctl")) test_ioctl();
     else if(!strcmp(argv[1],"netlink-socket")) netlink_socket(argc-1,argv+1);
@@ -74,7 +79,7 @@ void netlink_socket(int argc,char** argv)
     }
     struct sockaddr_nl addr;
     memset(&addr, 0, sizeof(addr));
-    addr.nl_family=NETLINK_TESTFAMILY;
+    addr.nl_family=AF_NETLINK;
     addr.nl_pid = 0; 
     addr.nl_groups = 0;
 
