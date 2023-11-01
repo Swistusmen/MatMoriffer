@@ -7,7 +7,7 @@
 #include <string.h>
 #include "matmorifferctl.h"
 
-int main(int argc, char* argv){
+int main(int argc, char** argv){
     if(getuid()!=0){
         printf("Error: This program demands root priviliges\n");
         return 0;
@@ -15,7 +15,8 @@ int main(int argc, char* argv){
 
     char snap_device_path[100];
     strcpy(snap_device_path, "/dev/");
-    strcpy(snap_device_path,MATMORIFFER_SNAP_DEVICE);
+    strcat(snap_device_path,MATMORIFFER_SNAP_DEVICE);
+
 
     int fd=open(snap_device_path,O_RDWR);
     if (fd<0) goto error;
