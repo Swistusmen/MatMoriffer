@@ -11,6 +11,10 @@
 #include <linux/fs.h>
 #include "../lib/matmorifferctl.h"
 
+#include <net/netlink.h>
+#include <net/net_namespace.h>
+#include <linux/netlink.h>
+
 #define MODULE_NAME "matmoriffer"
 #define BUFFSIZE 100
 
@@ -22,8 +26,19 @@ playing with kernel 6.2
 https://medium.com/powerof2/sequence-file-interface-in-kernel-8967d749f57d
 */
 
+/*
+1.Napisanie prostego netlinkowego socketu po stronie kernela i po stronie userspacu-maja miec mozliwosc komunikacji
+2.Zarejestrowanie wlasnego urzadzenia sieciowego
+3.Ogarniecie zeby to urzadzenie robilo dokladnie to samo co robi wireshark (opisane w kernel networkprogramming introduction)
+
+
+Pozniej jesli bedzie czas:
+1. Napisanie klienta w QT ktory to bedzie handlowal wszystko
+*/
+
 static struct proc_dir_entry* entry;
 static struct mutex ioctl_mutex;
+static struct sock* socket;
 
 static void *proc_start(struct seq_file *m, loff_t *pos)
 {
@@ -126,6 +141,16 @@ static struct miscdevice control_device={
     .fops=&control_fops,
 };
 
+static void receive_netlink_message(struct sk_buff* skb){
+    printk(KERN_INFO "Entering %s\n",__FUNCTION__);
+    struct nlmsghdr * nlh=(struct nlmsghdr*)skb->data;
+    printk(KERN_INFO "Received message %s\n",(char*)nlmsg_data(nlh));
+}
+
+static struct netlink_kernel_cfg netlink_socket_config={
+    .input= receive_netlink_message,
+};
+
 static int __init driver_initialization(void){
     printk(KERN_INFO "Hello, World\n");
     entry=proc_create("matmoriffer",0660, NULL,&my_proc_ops);
@@ -134,6 +159,13 @@ static int __init driver_initialization(void){
     ret=misc_register(&control_device);
     if(ret){
         printk(KERN_INFO "registering matmoriffer_snap_device ioctl status: %d", ret);
+        return -1;
+    }
+
+    socket=netlink_kernel_create(&init_net,NETLINK_TESTFAMILY, &netlink_socket_config );
+    if(socket==NULL){
+        printk(KERN_INFO "could not create netlink socket\n");
+        return -1;
     }
 
     return 0;
@@ -142,6 +174,9 @@ static int __init driver_initialization(void){
 static void driver_deinitialization(void){
     proc_remove(entry);
     misc_deregister(&control_device);
+    if(socket){
+        netlink_kernel_release(socket);
+    }
     printk(KERN_INFO "Goodbye world!\n");
 }
 
