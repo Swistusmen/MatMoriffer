@@ -77,6 +77,7 @@ void netlink_socket(int argc,char** argv)
     if (strcmp(message, "exit") == 0) {
         break;
     }
+    //sending a message
     struct sockaddr_nl addr;
     memset(&addr, 0, sizeof(addr));
     addr.nl_family=AF_NETLINK;
@@ -101,5 +102,30 @@ void netlink_socket(int argc,char** argv)
     msg.msg_iovlen = 1;
 
     sendmsg(fd, &msg, 0);
+    //receive a message
+    free(nlh);
+    nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
+    struct iovec iov_res;
+    struct msghdr response;
+        
+    iov_res.iov_base = (void *)nlh;
+    iov_res.iov_len = NLMSG_SPACE(MAX_PAYLOAD);
+        
+    response.msg_name = (void *)&addr;
+    response.msg_namelen = sizeof(addr);
+    response.msg_iov = &iov_res;
+    response.msg_iovlen = 1;
+        
+    ssize_t recv_len = recvmsg(fd, &response, 0);
+        
+    if (recv_len < 0) {
+        perror("recvmsg error");
+        break;
     }
+        
+    // Przetwarzanie i wyświetlanie otrzymanej wiadomości
+    char *received_message = (char *)NLMSG_DATA(nlh);
+    printf("Received message: %s\n", received_message);
+    }
+    close(fd);
 }

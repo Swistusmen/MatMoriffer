@@ -142,9 +142,24 @@ static struct miscdevice control_device={
 };
 
 static void receive_netlink_message(struct sk_buff* skb){
-    printk(KERN_INFO "Entering %s\n",__FUNCTION__);
+    //waiting for message in socket 
     struct nlmsghdr * nlh=(struct nlmsghdr*)skb->data;
     printk(KERN_INFO "Received message %s\n",(char*)nlmsg_data(nlh));
+    pid_t pid= nlh->nlmsg_pid;
+
+    //sending a message through socket
+    char* message= "Response";
+    size_t message_size=strlen(message)+1;
+    struct sk_buff* response=nlmsg_new(message_size, GFP_KERNEL);
+    if(!response){
+        printk(KERN_INFO "Failed to allocate struc kernel buffer\n");
+        return;
+    }
+
+    nlh=nlmsg_put(response,0,0,NLMSG_DONE, message_size,0);
+    NETLINK_CB(response).dst_group=0;
+    strncpy(nlmsg_data(nlh),message,message_size);
+    nlmsg_unicast(socket, response, pid);
 }
 
 static struct netlink_kernel_cfg netlink_socket_config={
