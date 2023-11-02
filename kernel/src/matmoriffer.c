@@ -15,6 +15,12 @@
 #include <net/net_namespace.h>
 #include <linux/netlink.h>
 
+#include <linux/netfilter.h>
+#include <linux/netfilter_ipv4.h>
+#include <linux/ip.h>
+#include <linux/udp.h>
+#include <linux/tcp.h>
+
 #define MODULE_NAME "matmoriffer"
 #define BUFFSIZE 100
 
@@ -27,10 +33,12 @@ https://medium.com/powerof2/sequence-file-interface-in-kernel-8967d749f57d
 */
 
 /*
-1.Napisanie prostego netlinkowego socketu po stronie kernela i po stronie userspacu-maja miec mozliwosc komunikacji
-2.Zarejestrowanie wlasnego urzadzenia sieciowego
-3.Ogarniecie zeby to urzadzenie robilo dokladnie to samo co robi wireshark (opisane w kernel networkprogramming introduction)
-
+-Mozna wszystko obslugiwac za pomoc netfiltra->tak to zrobic:
+a) dodac obsluge tcp do kernela (ma sie wyswietlac w kernelu)
+b) dodac wlaczanie i wylaczanie na podstawie za pomoca ioctl
+c) dodac ze przechwycone pakiety przekazywane sa za pomoca netlinka
+d) dodac ze mozna sluchac tez udp (do wyorbu)
+Modul jest skonczony
 
 Pozniej jesli bedzie czas:
 1. Napisanie klienta w QT ktory to bedzie handlowal wszystko
@@ -166,6 +174,29 @@ static struct netlink_kernel_cfg netlink_socket_config={
     .input= receive_netlink_message,
 };
 
+static unsigned int netfilter_hooking_fun(void * priv, struct sk_buff* skb,const struct nf_hook_state* state){
+    struct iphdr *ip_header;
+    struct tcphdr *tcp_header;
+
+    ip_header = ip_hdr(skb);
+
+    if (ip_header->protocol == IPPROTO_TCP) {
+        tcp_header = (struct tcphdr *)(ip_header + 1);
+        printk(KERN_INFO "Złapano pakiet TCP z src IP: %pI4, src port: %d, dst IP: %pI4, dst port: %d\n",
+            &ip_header->saddr, ntohs(tcp_header->source),
+            &ip_header->daddr, ntohs(tcp_header->dest));
+    }
+
+    return NF_ACCEPT;
+}
+
+static struct nf_hook_ops nfho={
+    .hook= netfilter_hooking_fun,
+    .hooknum= NF_INET_PRE_ROUTING,
+    .pf=PF_INET,
+    .priority=NF_IP_PRI_FIRST
+};
+
 static int __init driver_initialization(void){
     printk(KERN_INFO "Hello, World\n");
     entry=proc_create("matmoriffer",0660, NULL,&my_proc_ops);
@@ -181,6 +212,11 @@ static int __init driver_initialization(void){
     if(socket==NULL){
         printk(KERN_INFO "could not create netlink socket\n");
         return -1;
+    }
+
+    ret=nf_register_net_hook(&init_net, &nfho);
+    if(ret){
+        printk(KERN_INFO "Could not register netfilter hook operations\n");
     }
 
     return 0;

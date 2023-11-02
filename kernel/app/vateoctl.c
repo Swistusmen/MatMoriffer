@@ -11,6 +11,8 @@
 
 #define MAX_PAYLOAD 1024
 
+//simple application for testing purposes
+
 void print_help();
 void test_ioctl();
 void netlink_socket(int argc,char** argv);
@@ -123,7 +125,7 @@ void netlink_socket(int argc,char** argv)
         break;
     }
         
-    // Przetwarzanie i wyświetlanie otrzymanej wiadomości
+    //show message which I got
     char *received_message = (char *)NLMSG_DATA(nlh);
     printf("Received message: %s\n", received_message);
     }
