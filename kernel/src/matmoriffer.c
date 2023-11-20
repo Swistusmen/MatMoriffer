@@ -34,7 +34,7 @@ https://medium.com/powerof2/sequence-file-interface-in-kernel-8967d749f57d
 
 /*
 -Mozna wszystko obslugiwac za pomoc netfiltra->tak to zrobic:
-a) dodac obsluge tcp do kernela (ma sie wyswietlac w kernelu)
+a) dodac obsluge tcp do kernela (ma sie wyswietlac w kernelu) DONE
 b) dodac wlaczanie i wylaczanie na podstawie za pomoca ioctl
 c) dodac ze przechwycone pakiety przekazywane sa za pomoca netlinka
 d) dodac ze mozna sluchac tez udp (do wyorbu)
@@ -42,6 +42,14 @@ Modul jest skonczony
 
 Pozniej jesli bedzie czas:
 1. Napisanie klienta w QT ktory to bedzie handlowal wszystko
+
+
+
+Dzisiaj:
+-dodanie sluchania UDP
+-dodanie wlaczania i wylaczania sluchania
+-dodanie wyboru pakietu
+-zastanowienie sie co jeszcze mozna zrobic z pakietami (tutaj ogarniecie w ktorym miejscu dziala moj hook tez)
 */
 
 static struct proc_dir_entry* entry;
@@ -176,15 +184,22 @@ static struct netlink_kernel_cfg netlink_socket_config={
 
 static unsigned int netfilter_hooking_fun(void * priv, struct sk_buff* skb,const struct nf_hook_state* state){
     struct iphdr *ip_header;
-    struct tcphdr *tcp_header;
 
     ip_header = ip_hdr(skb);
 
     if (ip_header->protocol == IPPROTO_TCP) {
+        struct tcphdr *tcp_header;
         tcp_header = (struct tcphdr *)(ip_header + 1);
         printk(KERN_INFO "Złapano pakiet TCP z src IP: %pI4, src port: %d, dst IP: %pI4, dst port: %d\n",
             &ip_header->saddr, ntohs(tcp_header->source),
             &ip_header->daddr, ntohs(tcp_header->dest));
+    }
+    else if(ip_header->protocol == IPPROTO_UDP){
+        struct udphdr *udp_header;
+        udp_header= (struct udphdr*) (ip_header +1);
+        printk(KERN_INFO "Złapano pakiet UDP z src IP: %pI4, src port: %d, dst IP: %pI4, dst port: %d\n",
+            &ip_header->saddr, ntohs(udp_header->source),
+            &ip_header->daddr, ntohs(udp_header->dest));
     }
 
     return NF_ACCEPT;
