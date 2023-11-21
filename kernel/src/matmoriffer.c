@@ -108,9 +108,11 @@ long int matmoriffer_ioctl(struct file * flip, unsigned int cmd,  long unsigned 
     switch(cmd){
         case TURN_ON_TCP:{
             swich_protocol_value(TCP);
+            break;
         }
         case TURN_ON_UDP:{
             swich_protocol_value(UDP);
+            break;
         }
         default:{
 
