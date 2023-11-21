@@ -157,6 +157,7 @@ static struct miscdevice control_device={
 
 static int __init driver_initialization(void){
     printk(KERN_INFO "Initializing matmoriffer \n");
+    listening_protocols=0;
     entry=proc_create("matmoriffer",0660, NULL,&my_proc_ops);
     int ret;
 
