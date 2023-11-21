@@ -1,4 +1,3 @@
-
 #include <net/netlink.h>
 #include <net/net_namespace.h>
 #include <linux/netlink.h>
@@ -7,7 +6,9 @@
 #include <linux/ip.h>
 #include <linux/udp.h>
 #include <linux/tcp.h>
+#include "message_buffer.h"
 //general
+static message_buffer messages;
 static struct sock* socket;
 
 enum PROTOCOL{
@@ -31,20 +32,27 @@ static unsigned int netfilter_hooking_fun(void * priv, struct sk_buff* skb,const
     if(listening_protocols!=0){
         struct iphdr *ip_header;
         ip_header = ip_hdr(skb);
+        message* msg;
+        msg = kmalloc(sizeof(struct message), GFP_KERNEL);
+        char content[100];
 
     if (is_protocol_turned_on(TCP) && ip_header->protocol == IPPROTO_TCP) {
         struct tcphdr *tcp_header;
         tcp_header = (struct tcphdr *)(ip_header + 1);
-        printk(KERN_INFO "Złapano pakiet TCP z src IP: %pI4, src port: %d, dst IP: %pI4, dst port: %d\n",
-            &ip_header->saddr, ntohs(tcp_header->source),
-            &ip_header->daddr, ntohs(tcp_header->dest));
+        snprintf(content, sizeof(content), "TCP from src IP: %pI4, src port: %d, dst IP: %pI4, dst port: %d\n",
+             &ip_header->saddr, ntohs(tcp_header->source),
+             &ip_header->daddr, ntohs(tcp_header->dest));
+        initialize_message(msg, content);
+        push_message(&messages,msg);
     }
     else if(is_protocol_turned_on(UDP) && ip_header->protocol == IPPROTO_UDP){
         struct udphdr *udp_header;
         udp_header= (struct udphdr*) (ip_header +1);
-        printk(KERN_INFO "Złapano pakiet UDP z src IP: %pI4, src port: %d, dst IP: %pI4, dst port: %d\n",
+        snprintf(content, sizeof(content),"UDP from src IP: %pI4, src port: %d, dst IP: %pI4, dst port: %d\n",
             &ip_header->saddr, ntohs(udp_header->source),
-            &ip_header->daddr, ntohs(udp_header->dest));
+            &ip_header->daddr, ntohs(udp_header->dest) );
+        initialize_message(msg, content);
+        push_message(&messages,msg);
     }
 
     return NF_ACCEPT;

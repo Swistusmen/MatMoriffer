@@ -15,32 +15,6 @@
 #define MODULE_NAME "matmoriffer"
 #define BUFFSIZE 100
 
-/*
-Tested and developed for kernel 6.2 Ubuntu 22.04
-playing with kernel 6.2
-https://medium.com/powerof2/sequence-file-interface-in-kernel-8967d749f57d
-*/
-
-/*
--Mozna wszystko obslugiwac za pomoc netfiltra->tak to zrobic:
-a) dodac obsluge tcp do kernela (ma sie wyswietlac w kernelu) DONE
-b) dodac wlaczanie i wylaczanie na podstawie za pomoca ioctl
-c) dodac ze przechwycone pakiety przekazywane sa za pomoca netlinka
-d) dodac ze mozna sluchac tez udp (do wyorbu)
-Modul jest skonczony
-
-Pozniej jesli bedzie czas:
-1. Napisanie klienta w QT ktory to bedzie handlowal wszystko
-
-Dzisiaj:
--dodanie sluchania UDP DONE
--dodanie wlaczania i wylaczania sluchania NOW
--dodanie wyboru pakietu NOW
--przebudowanie:otrzymane pakiety maja byc wysylane na netlinkowe sockety
--napisanie opcji zeby uniemozliwic wysylanie pakietow na konkretny adres
--napisanie opcji zeby uniemozliwic przetwarzania pakietow z konkretnego adresu
-*/
-
 static struct proc_dir_entry* entry;
 static struct mutex ioctl_mutex;
 
@@ -66,9 +40,11 @@ static int proc_show(struct seq_file *m, void *v)
 {
     seq_printf(m, "Spying on protocols: ");
     if(is_protocol_turned_on(TCP)){
+        printk(KERN_INFO "TCP\n");
         seq_printf(m, "TCP ");
     }
     if(is_protocol_turned_on(UDP)){
+        printk(KERN_INFO "UDP\n");
         seq_printf(m, "UDP ");
     }
     seq_printf(m,"\n");
@@ -160,6 +136,7 @@ static struct miscdevice control_device={
 static int __init driver_initialization(void){
     printk(KERN_INFO "Initializing matmoriffer \n");
     listening_protocols=0;
+    initialize_message_buffer(&messages);
     entry=proc_create("matmoriffer",0660, NULL,&my_proc_ops);
     int ret;
 
@@ -184,6 +161,7 @@ static int __init driver_initialization(void){
 }
 
 static void driver_deinitialization(void){
+    free_message_buffer(&messages);
     proc_remove(entry);
     misc_deregister(&control_device);
     if(socket){
@@ -198,5 +176,5 @@ module_exit(driver_deinitialization);
 MODULE_INFO(name,MODULE_NAME);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Michal Switala Swistusmen");
-MODULE_DESCRIPTION("Just reactive module");
+MODULE_DESCRIPTION("Module for controling network privacy on your PC");
 MODULE_VERSION("0.1"); 

@@ -65,7 +65,7 @@ void print_help()
 {
     printf("help --for help\n");
     printf("tcp- turns on/off listening on tcp\n");
-    printf("udp- turns on/off listening on tcp\n");
+    printf("udp- turns on/off listening on udp\n");
     printf("netlink-socket for testing netlink socket\n");
 }
 
