@@ -37,7 +37,8 @@ Dzisiaj:
 -dodanie wlaczania i wylaczania sluchania NOW
 -dodanie wyboru pakietu NOW
 -przebudowanie:otrzymane pakiety maja byc wysylane na netlinkowe sockety
--zastanowienie sie co jeszcze mozna zrobic z pakietami (tutaj ogarniecie w ktorym miejscu dziala moj hook tez)
+-napisanie opcji zeby uniemozliwic wysylanie pakietow na konkretny adres
+-napisanie opcji zeby uniemozliwic przetwarzania pakietow z konkretnego adresu
 */
 
 static struct proc_dir_entry* entry;
@@ -67,7 +68,7 @@ static int proc_show(struct seq_file *m, void *v)
     if(is_protocol_turned_on(TCP)){
         seq_printf(m, "TCP ");
     }
-    if(is_protocol_turned_on(TCP)){
+    if(is_protocol_turned_on(UDP)){
         seq_printf(m, "UDP ");
     }
     seq_printf(m,"\n");
