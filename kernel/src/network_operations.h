@@ -14,25 +14,32 @@ enum PROTOCOL{
     TCP,
     UDP,
 };
-//*value ^= (1 << protocol);
 
 static char listening_protocols;
+
+static void swich_protocol_value(const enum PROTOCOL protocol){
+    listening_protocols ^=(1<<protocol);
+}
+
+static int is_protocol_turned_on(const enum PROTOCOL protocol){
+    return (listening_protocols & (1 << protocol)) != 0;
+}
 
 //general
 //handling network
 static unsigned int netfilter_hooking_fun(void * priv, struct sk_buff* skb,const struct nf_hook_state* state){
-    struct iphdr *ip_header;
+    if(listening_protocols!=0){
+        struct iphdr *ip_header;
+        ip_header = ip_hdr(skb);
 
-    ip_header = ip_hdr(skb);
-
-    if (ip_header->protocol == IPPROTO_TCP) {
+    if (is_protocol_turned_on(TCP) && ip_header->protocol == IPPROTO_TCP) {
         struct tcphdr *tcp_header;
         tcp_header = (struct tcphdr *)(ip_header + 1);
         printk(KERN_INFO "Złapano pakiet TCP z src IP: %pI4, src port: %d, dst IP: %pI4, dst port: %d\n",
             &ip_header->saddr, ntohs(tcp_header->source),
             &ip_header->daddr, ntohs(tcp_header->dest));
     }
-    else if(ip_header->protocol == IPPROTO_UDP){
+    else if(is_protocol_turned_on(UDP) && ip_header->protocol == IPPROTO_UDP){
         struct udphdr *udp_header;
         udp_header= (struct udphdr*) (ip_header +1);
         printk(KERN_INFO "Złapano pakiet UDP z src IP: %pI4, src port: %d, dst IP: %pI4, dst port: %d\n",
@@ -41,6 +48,8 @@ static unsigned int netfilter_hooking_fun(void * priv, struct sk_buff* skb,const
     }
 
     return NF_ACCEPT;
+    }
+    return NF_DROP;
 }
 
 static struct nf_hook_ops nfho = {

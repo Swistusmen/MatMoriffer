@@ -14,7 +14,7 @@
 //simple application for testing purposes
 
 void print_help();
-void test_ioctl();
+void switch_protocol(const int protocol);
 void netlink_socket(int argc,char** argv);
 
 int main(int argc, char** argv){
@@ -29,38 +29,44 @@ int main(int argc, char** argv){
     }
 
     if(!strcmp(argv[1],"help")) print_help();
-    else if(!strcmp(argv[1],"test-ioctl")) test_ioctl();
+    else if(!strcmp(argv[1],"tcp")) switch_protocol(1);
+    else if(!strcmp(argv[1],"udp")) switch_protocol(2);
     else if(!strcmp(argv[1],"netlink-socket")) netlink_socket(argc-1,argv+1);
     else print_help();
 
     return 0;
 }
 
+void switch_protocol(const int protocol){
+        char snap_device_path[100];
+        strcpy(snap_device_path, "/dev/");
+        strcat(snap_device_path,MATMORIFFER_SNAP_DEVICE);
+
+        int fd=open(snap_device_path,O_RDWR);
+        if (fd<0) goto error;
+
+        int ret;
+        if(protocol==1){
+            ret=ioctl(fd,TURN_ON_TCP);
+        }else if(protocol==2){
+            ret=ioctl(fd,TURN_ON_UDP);
+        }
+        if(ret){
+            printf("Error when calling %s : %d\n",snap_device_path,ret);
+        }
+        close(fd);
+        return;
+
+        error:
+        printf("could not open %s \n",snap_device_path);
+}
+
 void print_help()
 {
     printf("help --for help\n");
-    printf("test-ioctl for testing ioctl\n");
+    printf("tcp- turns on/off listening on tcp\n");
+    printf("udp- turns on/off listening on tcp\n");
     printf("netlink-socket for testing netlink socket\n");
-}
-
-void test_ioctl()
-{
-    char snap_device_path[100];
-    strcpy(snap_device_path, "/dev/");
-    strcat(snap_device_path,MATMORIFFER_SNAP_DEVICE);
-
-    int fd=open(snap_device_path,O_RDWR);
-    if (fd<0) goto error;
-
-    int ret=ioctl(fd,TEST_INCREMENTAL);
-    if(ret){
-        printf("Error when calling %s : %d\n",snap_device_path,ret);
-    }
-    close(fd);
-    return;
-
-    error:
-    printf("could not open %s \n",snap_device_path);
 }
 
 void netlink_socket(int argc,char** argv)

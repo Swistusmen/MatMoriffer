@@ -15,8 +15,6 @@
 #define MODULE_NAME "matmoriffer"
 #define BUFFSIZE 100
 
-int counter=0;
-
 /*
 Tested and developed for kernel 6.2 Ubuntu 22.04
 playing with kernel 6.2
@@ -36,8 +34,8 @@ Pozniej jesli bedzie czas:
 
 Dzisiaj:
 -dodanie sluchania UDP DONE
--dodanie wlaczania i wylaczania sluchania
--dodanie wyboru pakietu
+-dodanie wlaczania i wylaczania sluchania NOW
+-dodanie wyboru pakietu NOW
 -przebudowanie:otrzymane pakiety maja byc wysylane na netlinkowe sockety
 -zastanowienie sie co jeszcze mozna zrobic z pakietami (tutaj ogarniecie w ktorym miejscu dziala moj hook tez)
 */
@@ -65,7 +63,14 @@ static void proc_stop(struct seq_file *m, void *v){
 
 static int proc_show(struct seq_file *m, void *v)
 {
-    seq_printf(m, "Hello in proc file %d\n", counter);
+    seq_printf(m, "Spying on protocols: ");
+    if(is_protocol_turned_on(TCP)){
+        seq_printf(m, "TCP ");
+    }
+    if(is_protocol_turned_on(TCP)){
+        seq_printf(m, "UDP ");
+    }
+    seq_printf(m,"\n");
     return 0;
 }
 
@@ -100,10 +105,13 @@ long int matmoriffer_ioctl(struct file * flip, unsigned int cmd,  long unsigned 
 {
     printk(KERN_INFO "matmoriffer_ioctl has been called\n");
     switch(cmd){
-        case TEST_INCREMENTAL:{
-            counter++;
-            break;
-        }default:{
+        case TURN_ON_TCP:{
+            swich_protocol_value(TCP);
+        }
+        case TURN_ON_UDP:{
+            swich_protocol_value(UDP);
+        }
+        default:{
 
         }
     }
@@ -147,7 +155,7 @@ static struct miscdevice control_device={
 };
 
 static int __init driver_initialization(void){
-    printk(KERN_INFO "Hello, World\n");
+    printk(KERN_INFO "Initializing matmoriffer \n");
     entry=proc_create("matmoriffer",0660, NULL,&my_proc_ops);
     int ret;
 
@@ -177,7 +185,7 @@ static void driver_deinitialization(void){
     if(socket){
         netlink_kernel_release(socket);
     }
-    printk(KERN_INFO "Goodbye world!\n");
+    printk(KERN_INFO "Matmoriffer has been deinitialized\n");
 }
 
 module_init(driver_initialization);
