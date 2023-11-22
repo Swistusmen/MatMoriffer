@@ -77,14 +77,6 @@ void netlink_socket(int argc,char** argv)
         return;
     }
     char message[100];
-    while(1){
-    printf("/n> ");
-    fgets(message, sizeof(message), stdin); 
-    message[strcspn(message, "\n")] = '\0';
-
-    if (strcmp(message, "exit") == 0) {
-        break;
-    }
     //sending a message
     struct sockaddr_nl addr;
     memset(&addr, 0, sizeof(addr));
@@ -111,6 +103,7 @@ void netlink_socket(int argc,char** argv)
 
     sendmsg(fd, &msg, 0);
     //receive a message
+    while(1){
     free(nlh);
     nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
     struct iovec iov_res;
@@ -133,7 +126,7 @@ void netlink_socket(int argc,char** argv)
         
     //show message which I got
     char *received_message = (char *)NLMSG_DATA(nlh);
-    printf("Received message: %s\n", received_message);
+    printf("%s\n", received_message);
     }
     close(fd);
 }

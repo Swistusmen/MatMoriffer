@@ -75,7 +75,10 @@ static void receive_netlink_message(struct sk_buff* skb){
     pid_t pid= nlh->nlmsg_pid;
 
     //sending a message through socket
-    char* message= "Response";
+    message* msg;
+    pop_message(&messages,msg);
+    while(msg){
+    char* message= msg->content;
     size_t message_size=strlen(message)+1;
     struct sk_buff* response=nlmsg_new(message_size, GFP_KERNEL);
     if(!response){
@@ -87,6 +90,8 @@ static void receive_netlink_message(struct sk_buff* skb){
     NETLINK_CB(response).dst_group=0;
     strncpy(nlmsg_data(nlh),message,message_size);
     nlmsg_unicast(socket, response, pid);
+    pop_message(&messages,msg);
+    }
 }
 
 static struct netlink_kernel_cfg netlink_socket_config={
