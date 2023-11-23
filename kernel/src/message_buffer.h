@@ -67,7 +67,7 @@ static void pop_message(message_buffer *buffer, message **msg)
     {
         *msg = buffer->head;
         buffer->head = (*msg)->next;
-        (*msg -) > next = NULL;
+        (*msg)->next = NULL;
         buffer->size--;
     }
     mutex_unlock(&buffer->message_buffer_mutex);
