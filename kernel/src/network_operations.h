@@ -6,7 +6,10 @@
 #include <linux/ip.h>
 #include <linux/udp.h>
 #include <linux/tcp.h>
+#include <linux/delay.h>
+#include <linux/string.h>
 #include "message_buffer.h"
+#include "../lib/matmorifferctl.h"
 // general
 static message_buffer messages;
 static struct sock *socket;
@@ -75,39 +78,75 @@ static struct nf_hook_ops nfho = {
 // handling network
 
 // handling netlink sockets
+static int send_netlink_message(message *msg, struct nlmsghdr *nlh, pid_t pid)
+{
+    char *message = msg->content;
+    size_t message_size = strlen(message) + 1;
+    struct sk_buff *response = nlmsg_new(message_size, GFP_KERNEL);
+    if (!response)
+    {
+        printk(KERN_INFO "Failed to allocate struc kernel buffer\n");
+        kfree(msg);
+        return 0;
+    }
+
+    nlh = nlmsg_put(response, 0, 0, NLMSG_DONE, message_size, 0);
+    NETLINK_CB(response).dst_group = 0;
+    strncpy(nlmsg_data(nlh), message, message_size);
+    nlmsg_unicast(socket, response, pid);
+    return 1;
+}
+
 static void receive_netlink_message(struct sk_buff *skb)
 {
-    // waiting for message in socket
-    struct nlmsghdr *nlh = (struct nlmsghdr *)skb->data;
-    printk(KERN_INFO "Received message %s\n", (char *)nlmsg_data(nlh));
-    pid_t pid = nlh->nlmsg_pid;
-
-    // sending a message through socket
-    message *msg;
-    pop_message(&messages, &msg);
-    while (msg)
+    while (true)
     {
-        char *message = msg->content;
-        size_t message_size = strlen(message) + 1;
-        struct sk_buff *response = nlmsg_new(message_size, GFP_KERNEL);
-        if (!response)
+        struct nlmsghdr *nlh = (struct nlmsghdr *)skb->data;
+        const char *message_from_userspace = (char *)nlmsg_data(nlh);
+        int are_different = strcmp(message_from_userspace, BREAK_COMMUNICATION);
+        if (are_different == 0)
         {
-            printk(KERN_INFO "Failed to allocate struc kernel buffer\n");
+            printk(KERN_INFO, "received break communicate");
+            goto exit;
+        }
+        pid_t pid = nlh->nlmsg_pid;
+        message *msg;
+
+        pop_message(&messages, &msg);
+        int messages_counter = 1;
+        while (msg)
+        {
+            if (!send_netlink_message(msg, nlh, pid))
+            {
+                return;
+            }
+
+            if (messages_counter == TIME_TO_WAIT)
+            {
+                break;
+            }
             kfree(msg);
+            pop_message(&messages, &msg);
+            messages_counter++;
+        }
+        strcpy(msg->content, CONTINUE_COMMUNICATION);
+        if (!send_netlink_message(msg, nlh, pid))
+        {
             return;
         }
-
-        nlh = nlmsg_put(response, 0, 0, NLMSG_DONE, message_size, 0);
-        NETLINK_CB(response).dst_group = 0;
-        strncpy(nlmsg_data(nlh), message, message_size);
-        nlmsg_unicast(socket, response, pid);
         kfree(msg);
-        pop_message(&messages, &msg);
+        mdelay(TIME_TO_WAIT);
     }
-    kfree(msg);
+exit:
+    return;
 }
 
 static struct netlink_kernel_cfg netlink_socket_config = {
     .input = receive_netlink_message,
 };
 // handling netlink sockets
+
+// TODO: receive_netlink_message-
+// add 2nd loop to wait some time for loading message from TCP
+//(also waiting for some response from userspace-that still listening)
+// TODO: receive_netlink_message- add some counter f.e. 100-> after that break from inner loop (to free buffer)

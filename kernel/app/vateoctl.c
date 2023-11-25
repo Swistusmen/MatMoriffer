@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <poll.h>
 #include "matmorifferctl.h"
 
 #define MAX_PAYLOAD 1024
@@ -77,56 +78,95 @@ void netlink_socket(int argc,char** argv)
         return;
     }
     char message[100];
-    //sending a message
+    char *received_message;
+    int continue_to_listen;
+    int exit_communication;
     struct sockaddr_nl addr;
-    memset(&addr, 0, sizeof(addr));
-    addr.nl_family=AF_NETLINK;
-    addr.nl_pid = 0; 
-    addr.nl_groups = 0;
+    struct nlmsghdr *nlh;
+    int send_continue_communication=1;
 
-    struct nlmsghdr *nlh = (struct nlmsghdr *) malloc(NLMSG_SPACE(MAX_PAYLOAD));
-    memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
-    nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
-    nlh->nlmsg_pid = getpid();
-    nlh->nlmsg_flags = 0;
-    strcpy((char *) NLMSG_DATA(nlh), message);
-
-    struct iovec iov; memset(&iov, 0, sizeof(iov));
-    iov.iov_base = (void *) nlh;
-    iov.iov_len = nlh->nlmsg_len;
-
-    struct msghdr msg; memset(&msg, 0, sizeof(msg));
-    msg.msg_name = (void *) &addr;
-    msg.msg_namelen = sizeof(addr);
-    msg.msg_iov = &iov;
-    msg.msg_iovlen = 1;
-
-    sendmsg(fd, &msg, 0);
-    //receive a message
     while(1){
-    free(nlh);
-    nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
-    struct iovec iov_res;
-    struct msghdr response;
-        
-    iov_res.iov_base = (void *)nlh;
-    iov_res.iov_len = NLMSG_SPACE(MAX_PAYLOAD);
-        
-    response.msg_name = (void *)&addr;
-    response.msg_namelen = sizeof(addr);
-    response.msg_iov = &iov_res;
-    response.msg_iovlen = 1;
-        
-    ssize_t recv_len = recvmsg(fd, &response, 0);
-        
-    if (recv_len < 0) {
-        perror("recvmsg error");
-        break;
+        //sending a message
+        memset(&addr, 0, sizeof(addr));
+        addr.nl_family=AF_NETLINK;
+        addr.nl_pid = 0; 
+        addr.nl_groups = 0;
+
+        nlh = (struct nlmsghdr *) malloc(NLMSG_SPACE(MAX_PAYLOAD));
+        memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
+        nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
+        nlh->nlmsg_pid = getpid();
+        nlh->nlmsg_flags = 0;
+        if(send_continue_communication){
+            strcpy(message, CONTINUE_COMMUNICATION);
+        }else{
+            strcpy(message, BREAK_COMMUNICATION);
+            free(nlh);
+            goto exit;
+        }
+        strcpy((char *) NLMSG_DATA(nlh), message);
+
+        struct iovec iov;
+        memset(&iov, 0, sizeof(iov));
+        iov.iov_base = (void *) nlh;
+        iov.iov_len = nlh->nlmsg_len;
+
+        struct msghdr msg;
+        memset(&msg, 0, sizeof(msg));
+        msg.msg_name = (void *) &addr;
+        msg.msg_namelen = sizeof(addr);
+        msg.msg_iov = &iov;
+        msg.msg_iovlen = 1;
+
+        sendmsg(fd, &msg, 0);
+
+        //receive a message
+        while(1){
+            free(nlh);
+            nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
+            struct iovec iov_res;
+            struct msghdr response;
+                
+            iov_res.iov_base = (void *)nlh;
+            iov_res.iov_len = NLMSG_SPACE(MAX_PAYLOAD);
+                
+            response.msg_name = (void *)&addr;
+            response.msg_namelen = sizeof(addr);
+            response.msg_iov = &iov_res;
+            response.msg_iovlen = 1;
+
+            struct pollfd fds[1];
+            fds[0].fd = fd;
+            fds[0].events = POLLIN;
+
+            int ret = poll(fds, 1, TIME_TO_WAIT);
+
+            if (ret > 0 && (fds[0].revents & POLLIN)){
+                ssize_t recv_len = recvmsg(fd, &response, 0);
+                    
+                if (recv_len < 0) {
+                    perror("recvmsg error");
+                    break;
+                }
+                    
+                //show message which I got
+                *received_message = (char *)NLMSG_DATA(nlh);
+                continue_to_listen=strcmp(*received_message,CONTINUE_COMMUNICATION);
+                exit_communication=strcmp(*received_message,BREAK_COMMUNICATION);
+                if(continue_to_listen==0 || exit_communication==0){
+                    break;
+                }
+                printf("%s\n", received_message);
+            }else{
+                send_continue_communication=0;
+                break;
+            }
+        }
+        if(exit_communication==0){
+            break;
+        }
+        sleep(TIME_TO_WAIT);
     }
-        
-    //show message which I got
-    char *received_message = (char *)NLMSG_DATA(nlh);
-    printf("%s\n", received_message);
-    }
+exit:
     close(fd);
 }
