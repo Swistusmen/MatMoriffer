@@ -129,6 +129,7 @@ static void receive_netlink_message(struct sk_buff *skb)
             pop_message(&messages, &msg);
             messages_counter++;
         }
+        msg = kmalloc(sizeof(struct message), GFP_KERNEL);
         strcpy(msg->content, CONTINUE_COMMUNICATION);
         if (!send_netlink_message(msg, nlh, pid))
         {
