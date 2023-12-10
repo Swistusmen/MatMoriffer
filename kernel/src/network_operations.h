@@ -80,8 +80,7 @@ static struct nf_hook_ops nfho = {
 // handling netlink sockets
 static int send_netlink_message(message *msg, struct nlmsghdr *nlh, pid_t pid)
 {
-    char *message = msg->content;
-    size_t message_size = strlen(message) + 1;
+    size_t message_size = strlen(msg->content) + 1;
     struct sk_buff *response = nlmsg_new(message_size, GFP_KERNEL);
     if (!response)
     {
@@ -92,7 +91,7 @@ static int send_netlink_message(message *msg, struct nlmsghdr *nlh, pid_t pid)
 
     nlh = nlmsg_put(response, 0, 0, NLMSG_DONE, message_size, 0);
     NETLINK_CB(response).dst_group = 0;
-    strncpy(nlmsg_data(nlh), message, message_size);
+    strncpy(nlmsg_data(nlh), msg->content, message_size);
     nlmsg_unicast(socket, response, pid);
     return 1;
 }
@@ -102,13 +101,16 @@ static void receive_netlink_message(struct sk_buff *skb)
     while (true)
     {
         struct nlmsghdr *nlh = (struct nlmsghdr *)skb->data;
-        const char *message_from_userspace = (char *)nlmsg_data(nlh);
+        char message_from_userspace[100];
+        //tutaj jest blad
+        strcpy(message_from_userspace, (char *)nlmsg_data(nlh));
         int are_different = strcmp(message_from_userspace, BREAK_COMMUNICATION);
         if (are_different == 0)
         {
             printk(KERN_INFO, "received break communicate");
             goto exit;
         }
+        printk(KERN_INFO "DEBUG: received message %s", message_from_userspace);
         pid_t pid = nlh->nlmsg_pid;
         message *msg;
 

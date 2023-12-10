@@ -118,7 +118,9 @@ void netlink_socket(int argc,char** argv)
         msg.msg_iov = &iov;
         msg.msg_iovlen = 1;
         //to powoduje crash- debugowanie po stronie kernela gdzie jest (tam nie ma problemu)
+        printf("DEBUG:Sending %s\n",message);
         sendmsg(fd, &msg, 0);
+        printf("DEBUG:Message send %s\n",message);
 
         //receive a message
         while(1){
