@@ -98,11 +98,8 @@ static int send_netlink_message(message *msg, struct nlmsghdr *nlh, pid_t pid)
 
 static void receive_netlink_message(struct sk_buff *skb)
 {
-    while (true)
-    {
         struct nlmsghdr *nlh = (struct nlmsghdr *)skb->data;
         char message_from_userspace[100];
-        //tutaj jest blad
         strcpy(message_from_userspace, (char *)nlmsg_data(nlh));
         int are_different = strcmp(message_from_userspace, BREAK_COMMUNICATION);
         if (are_different == 0)
@@ -110,7 +107,6 @@ static void receive_netlink_message(struct sk_buff *skb)
             printk(KERN_INFO, "received break communicate");
             goto exit;
         }
-        printk(KERN_INFO "DEBUG: received message %s", message_from_userspace);
         pid_t pid = nlh->nlmsg_pid;
         message *msg;
 
@@ -131,15 +127,8 @@ static void receive_netlink_message(struct sk_buff *skb)
             pop_message(&messages, &msg);
             messages_counter++;
         }
-        msg = kmalloc(sizeof(struct message), GFP_KERNEL);
-        strcpy(msg->content, CONTINUE_COMMUNICATION);
-        if (!send_netlink_message(msg, nlh, pid))
-        {
-            return;
-        }
+
         kfree(msg);
-        mdelay(TIME_TO_WAIT);
-    }
 exit:
     return;
 }
@@ -148,8 +137,3 @@ static struct netlink_kernel_cfg netlink_socket_config = {
     .input = receive_netlink_message,
 };
 // handling netlink sockets
-
-// TODO: receive_netlink_message-
-// add 2nd loop to wait some time for loading message from TCP
-//(also waiting for some response from userspace-that still listening)
-// TODO: receive_netlink_message- add some counter f.e. 100-> after that break from inner loop (to free buffer)

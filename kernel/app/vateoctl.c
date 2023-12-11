@@ -78,12 +78,10 @@ void netlink_socket(int argc,char** argv)
         return;
     }
     char message[100];
-    char *received_message;
     int continue_to_listen;
     int exit_communication;
     struct sockaddr_nl addr;
     struct nlmsghdr *nlh;
-    int send_continue_communication=1;
 
     while(1){
         //sending a message
@@ -97,13 +95,6 @@ void netlink_socket(int argc,char** argv)
         nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
         nlh->nlmsg_pid = getpid();
         nlh->nlmsg_flags = 0;
-        if(send_continue_communication){
-            strcpy(message, CONTINUE_COMMUNICATION);
-        }else{
-            strcpy(message, BREAK_COMMUNICATION);
-            free(nlh);
-            goto exit;
-        }
         strcpy((char *) NLMSG_DATA(nlh), message);
 
         struct iovec iov;
@@ -117,10 +108,7 @@ void netlink_socket(int argc,char** argv)
         msg.msg_namelen = sizeof(addr);
         msg.msg_iov = &iov;
         msg.msg_iovlen = 1;
-        //to powoduje crash- debugowanie po stronie kernela gdzie jest (tam nie ma problemu)
-        printf("DEBUG:Sending %s\n",message);
-        sendmsg(fd, &msg, 0);
-        printf("DEBUG:Message send %s\n",message);
+        int ret=sendmsg(fd, &msg, 0);
 
         //receive a message
         while(1){
@@ -151,23 +139,14 @@ void netlink_socket(int argc,char** argv)
                     break;
                 }
                     
-                //show message which I got
-                *received_message = (char *)NLMSG_DATA(nlh);
-                continue_to_listen=strcmp(*received_message,CONTINUE_COMMUNICATION);
-                exit_communication=strcmp(*received_message,BREAK_COMMUNICATION);
-                if(continue_to_listen==0 || exit_communication==0){
-                    break;
+                char *received_message = (char *)NLMSG_DATA(nlh);
+                if(received_message){
+                    printf("%s\n", received_message);
                 }
-                printf("%s\n", received_message);
             }else{
-                send_continue_communication=0;
                 break;
             }
         }
-        if(exit_communication==0){
-            break;
-        }
-        sleep(TIME_TO_WAIT);
     }
 exit:
     close(fd);
