@@ -56,18 +56,18 @@ static void push_message(message_buffer *buffer, message *msg)
     mutex_unlock(&buffer->message_buffer_mutex);
 }
 
-static void pop_message(message_buffer *buffer, message *msg)
+static void pop_message(message_buffer *buffer, message **msg)
 {
     mutex_lock(&buffer->message_buffer_mutex);
     if (buffer->head == NULL)
     {
-        msg = NULL;
+        *msg = NULL;
     }
     else
     {
-        msg = buffer->head;
-        buffer->head = msg->next;
-        msg->next = NULL;
+        *msg = buffer->head;
+        buffer->head = (*msg)->next;
+        (*msg)->next = NULL;
         buffer->size--;
     }
     mutex_unlock(&buffer->message_buffer_mutex);

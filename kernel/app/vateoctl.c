@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <poll.h>
 #include "matmorifferctl.h"
 
 #define MAX_PAYLOAD 1024
@@ -77,63 +78,76 @@ void netlink_socket(int argc,char** argv)
         return;
     }
     char message[100];
-    while(1){
-    printf("/n> ");
-    fgets(message, sizeof(message), stdin); 
-    message[strcspn(message, "\n")] = '\0';
-
-    if (strcmp(message, "exit") == 0) {
-        break;
-    }
-    //sending a message
+    int continue_to_listen;
+    int exit_communication;
     struct sockaddr_nl addr;
-    memset(&addr, 0, sizeof(addr));
-    addr.nl_family=AF_NETLINK;
-    addr.nl_pid = 0; 
-    addr.nl_groups = 0;
+    struct nlmsghdr *nlh;
 
-    struct nlmsghdr *nlh = (struct nlmsghdr *) malloc(NLMSG_SPACE(MAX_PAYLOAD));
-    memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
-    nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
-    nlh->nlmsg_pid = getpid();
-    nlh->nlmsg_flags = 0;
-    strcpy((char *) NLMSG_DATA(nlh), message);
+    while(1){
+        //sending a message
+        memset(&addr, 0, sizeof(addr));
+        addr.nl_family=AF_NETLINK;
+        addr.nl_pid = 0; 
+        addr.nl_groups = 0;
 
-    struct iovec iov; memset(&iov, 0, sizeof(iov));
-    iov.iov_base = (void *) nlh;
-    iov.iov_len = nlh->nlmsg_len;
+        nlh = (struct nlmsghdr *) malloc(NLMSG_SPACE(MAX_PAYLOAD));
+        memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
+        nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
+        nlh->nlmsg_pid = getpid();
+        nlh->nlmsg_flags = 0;
+        strcpy((char *) NLMSG_DATA(nlh), message);
 
-    struct msghdr msg; memset(&msg, 0, sizeof(msg));
-    msg.msg_name = (void *) &addr;
-    msg.msg_namelen = sizeof(addr);
-    msg.msg_iov = &iov;
-    msg.msg_iovlen = 1;
+        struct iovec iov;
+        memset(&iov, 0, sizeof(iov));
+        iov.iov_base = (void *) nlh;
+        iov.iov_len = nlh->nlmsg_len;
 
-    sendmsg(fd, &msg, 0);
-    //receive a message
-    free(nlh);
-    nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
-    struct iovec iov_res;
-    struct msghdr response;
-        
-    iov_res.iov_base = (void *)nlh;
-    iov_res.iov_len = NLMSG_SPACE(MAX_PAYLOAD);
-        
-    response.msg_name = (void *)&addr;
-    response.msg_namelen = sizeof(addr);
-    response.msg_iov = &iov_res;
-    response.msg_iovlen = 1;
-        
-    ssize_t recv_len = recvmsg(fd, &response, 0);
-        
-    if (recv_len < 0) {
-        perror("recvmsg error");
-        break;
+        struct msghdr msg;
+        memset(&msg, 0, sizeof(msg));
+        msg.msg_name = (void *) &addr;
+        msg.msg_namelen = sizeof(addr);
+        msg.msg_iov = &iov;
+        msg.msg_iovlen = 1;
+        int ret=sendmsg(fd, &msg, 0);
+
+        //receive a message
+        while(1){
+            free(nlh);
+            nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
+            struct iovec iov_res;
+            struct msghdr response;
+                
+            iov_res.iov_base = (void *)nlh;
+            iov_res.iov_len = NLMSG_SPACE(MAX_PAYLOAD);
+                
+            response.msg_name = (void *)&addr;
+            response.msg_namelen = sizeof(addr);
+            response.msg_iov = &iov_res;
+            response.msg_iovlen = 1;
+
+            struct pollfd fds[1];
+            fds[0].fd = fd;
+            fds[0].events = POLLIN;
+
+            int ret = poll(fds, 1, TIME_TO_WAIT);
+
+            if (ret > 0 && (fds[0].revents & POLLIN)){
+                ssize_t recv_len = recvmsg(fd, &response, 0);
+                    
+                if (recv_len < 0) {
+                    perror("recvmsg error");
+                    break;
+                }
+                    
+                char *received_message = (char *)NLMSG_DATA(nlh);
+                if(received_message){
+                    printf("%s\n", received_message);
+                }
+            }else{
+                break;
+            }
+        }
     }
-        
-    //show message which I got
-    char *received_message = (char *)NLMSG_DATA(nlh);
-    printf("Received message: %s\n", received_message);
-    }
+exit:
     close(fd);
 }
