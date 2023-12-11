@@ -161,12 +161,14 @@ static int __init driver_initialization(void){
 }
 
 static void driver_deinitialization(void){
+    listening_protocols=0;
     free_message_buffer(&messages);
     proc_remove(entry);
     misc_deregister(&control_device);
     if(socket){
         netlink_kernel_release(socket);
     }
+    nf_unregister_net_hook(&init_net, &nfho);
     printk(KERN_INFO "Matmoriffer has been deinitialized\n");
 }
 
