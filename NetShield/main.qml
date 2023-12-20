@@ -1,5 +1,11 @@
-import QtQuick 2.12
+import QtQuick 2.15
 import QtQuick.Window 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import QtQml.StateMachine 1.15
+
+import QtQuick.Controls 1.4
+import "./"
 
 Window {
     id: mainWindow
@@ -8,34 +14,64 @@ Window {
     height: 600
     visible: true
 
-    Rectangle{
-        id: topBar
-        color: "green"
-        visible: true
+    property int backboardMarginsValue: 10
 
-        anchors.right: mainWindow.right
-        anchors.left: mainWindow.left
-        anchors.top: mainWindow.top
-        height: 75
+    Rectangle{
+        id: secondLayer
         width: parent.width
+        height: parent.height
+        color: "#52D3D8"
     }
 
-    Rectangle{
-        id: sideBar
-        color: "red"
-        visible: true
-        height: parent.height-topBar.height
-        width: 150
-        anchors.top: topBar.bottom
-        anchors.bottom: mainWindow.bottom
-        anchors.left: mainWindow.left
+    TabView
+    {
+    id: viewTab
 
-        MouseArea{
-            id: sideBarMouseArea
-            anchors.left: sideBar.left
-            anchors.top: sideBar.top
-            anchors.bottom: sideBar.bottom
+    anchors.left: parent.left;
+    anchors.top: parent.top;
+    anchors.leftMargin: backboardMarginsValue
+    anchors.rightMargin: backboardMarginsValue
+    anchors.bottomMargin: backboardMarginsValue
+    anchors.topMargin: backboardMarginsValue
+
+    width: parent.width-2*backboardMarginsValue
+    height: parent.height-2*backboardMarginsValue
+
+    currentIndex: tabContext.tabIndex;
+    Binding
+    {
+    target: tabContext;
+    property: "tabIndex";
+    value: viewTab.currentIndex;
+    }
+
+    Tab
+    {
+    title: "General";
+        GeneralView{
+            id: generalView
+            anchors.fill: parent
         }
     }
 
+    Tab
+    {
+    title: "Statistics View";
+        Rectangle
+        {
+        anchors.fill: parent
+        color: "yellow"
+        }
+    }
+
+    Tab
+    {
+    title: "Security View";
+        Rectangle
+        {
+        anchors.fill: parent
+        color: "blue"
+        }
+    }
+    }
 }

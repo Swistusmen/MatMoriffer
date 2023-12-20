@@ -1,5 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>TestClass.qml</file>
+        <file>GeneralView.qml</file>
+        <file>StatisticsView.qml</file>
+        <file>SecurityView.qml</file>
     </qresource>
 </RCC>
