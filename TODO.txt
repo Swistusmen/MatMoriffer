@@ -1,0 +1,7 @@
+TODO: zrobienie updatu jednego i drugiego programu
+
+1. Instalacja na ubuntu obydwu programow
+2. Komunikacja kernel z moim programem
+3. Komunikacja wewnatrz Qt
+4. Szlifowanie GeneralView
+5. Security
