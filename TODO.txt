@@ -1,3 +1,5 @@
+TODO: zrobienie updatu jednego i drugiego programu
+
 1. Instalacja na ubuntu obydwu programow
 2. Komunikacja kernel z moim programem
 3. Komunikacja wewnatrz Qt
