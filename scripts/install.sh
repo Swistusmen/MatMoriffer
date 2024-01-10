@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Building and install matmoriffer"
-sh kernel/install_matmoriffer.sh
+sudo sh kernel/install_matmoriffer.sh
 echo "Installing dependencies"
 sudo sh netshield/install_dependencies.sh
 echo "Building NetShield"
