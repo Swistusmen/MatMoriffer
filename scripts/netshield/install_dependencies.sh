@@ -1,5 +1,6 @@
 #!/bin/bash
 
+sudo apt-get update -y
 sudo apt-get install cmake -y
 sudo apt install qtbase5-dev -y
 sudo apt-get install libqt5quick5 -y

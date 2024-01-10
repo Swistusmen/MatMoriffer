@@ -9,7 +9,7 @@ else
     sudo mkdir $destination
     sudo cp $(pwd)/../NetShield $destination/NetShield
     export PATH=$PATH:/usr/local/netshield
-    source ~/.bashrc
+    sudo source ~/.bashrc
 fi
 
 application_shortcut=$HOME/Desktop
