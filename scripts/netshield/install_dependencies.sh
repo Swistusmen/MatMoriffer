@@ -8,3 +8,4 @@ sudo apt-get install qtdeclarative5
 sudo apt-get install qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtquick2 qml-module-qtqml-models2 qml-module-qtqml-statemachine -y
 sudo apt-get install qml-module-qtquick-controls -y
 sudo apt install qml-module-qtquick-controls2 -y
+sudo apt-get -y install nlohmann-json3-dev -y

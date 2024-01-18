@@ -8,7 +8,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt5 COMPONENTS Core Quick  REQUIRED)
@@ -17,7 +17,16 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick  REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
+        DriverCommunication.cpp
+        DriverCommunication.h
+        InterMessageBroker.cpp
+        InterMessageBroker.h
+        JsonReader.h
+        JsonReader.cpp
+        Common.h
         qml.qrc
+        ../kernel/lib/libmatmoriffer.h
+        ../kernel/lib/libmatmoriffer.c
         ${TS_FILES}
 )
 

@@ -1,5 +1,10 @@
 #ifndef MATMORIFFERCTL
 #define MATMORIFFERCTL
+
+#ifndef __KERNEL__
+#include <stdint.h>
+#endif
+
 #include <linux/ioctl.h>
 
 #define MATMORIFFER_IOCTL_MAGIC 'A'

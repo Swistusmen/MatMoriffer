@@ -68,6 +68,7 @@ Item {
 
                     onClicked: {
                         tcpButton.wasClicked=!tcpButton.wasClicked
+                        interMessageBroker.tcpClicked()
                     }
                 }
 
@@ -87,6 +88,7 @@ Item {
 
                     onClicked: {
                         udpButton.wasClicked=!udpButton.wasClicked
+                        interMessageBroker.udpClicked();
                     }
                 }
             }
@@ -150,6 +152,7 @@ Item {
 
                 onClicked: {
                     mainPlan.isTracking=true
+                    interMessageBroker.reloadParameters()
                 }
 
             }
@@ -376,4 +379,11 @@ Item {
     function getDmesgOutput() {
             return "DUPADUPADUPADUPADUPADUPA"
         }
+
+    Connections {
+      target: interMessageBroker
+      function onSomeMessage(result) {
+        console.log (result)
+      }
+    }
 }
