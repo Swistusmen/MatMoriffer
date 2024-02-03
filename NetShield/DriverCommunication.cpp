@@ -15,9 +15,39 @@ DriverCommunication::DriverCommunication(bool moduleLoaded){
 
     if(!checkIfModuleIsLoaded()){
         loadModule();
-        checkIfModuleIsLoaded();
+        if(!checkIfModuleIsLoaded()){
+            return;
+        }
     }
+    //TODO: add loading state of the module and updating GUI
+    loadDriverState();
 }
+
+void DriverCommunication::loadDriverState(){
+    char buffer[128];
+    std::string result = "";
+
+    FILE* pipe = popen("cat /proc/matmoriffer", "r");
+
+    if (!pipe) {
+        std::cerr << "Error opening pipe." << std::endl;
+        return;
+    }
+
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        result += buffer;
+    }
+
+    pclose(pipe);
+    parseDriverData(result);
+}
+
+void DriverCommunication::parseDriverData(const std::string& driverData){
+    currentStatus.tcp=driverData.find("TCP")!=std::string::npos;
+    currentStatus.udp=driverData.find("UDP")!=std::string::npos;
+    futureStatus=currentStatus;
+}
+
 
 bool DriverCommunication::checkIfModuleIsLoaded(){
     QString shellResponse;
@@ -70,17 +100,20 @@ void DriverCommunication::turn_udp()
 bool DriverCommunication::reloadMatmorifferParameters()
 {
     bool wasTransactionSuccesfull=true;
-    wasTransactionSuccesfull=tryToExecuteShellCommand(matmoriffer_turn_tcp(),"Parameter: tcp failed to change",currentStatus.tcp);
-    wasTransactionSuccesfull=tryToExecuteShellCommand(matmoriffer_turn_udp(),"Parameter: udp failed to change",currentStatus.udp);
+    wasTransactionSuccesfull=tryToExecuteShellCommand(matmoriffer_turn_tcp,"Parameter: tcp failed to change",currentStatus.tcp,futureStatus.tcp);
+    wasTransactionSuccesfull=tryToExecuteShellCommand(matmoriffer_turn_udp,"Parameter: udp failed to change",currentStatus.udp,futureStatus.udp);
 
     return wasTransactionSuccesfull;
 }
 
-bool DriverCommunication::tryToExecuteShellCommand(int success, const std::string& message, bool& field){
-    if(!success){
+bool DriverCommunication::tryToExecuteShellCommand(std::function<int()> f, const std::string& message, bool& currentField, const bool futureField){
+    if(futureField==currentField){
+        return true;
+    }
+    if(!f()){
         internalMessages.emplace_back(message);
         return false;
     }
-    field=!field;
+    currentField=futureField;
     return true;
 }

@@ -17,11 +17,16 @@
 
 int main(int argc, char *argv[])
 {
+    if(getuid()!=0){
+            std::cout<<"Error: This program demands root priviliges\n";
+            return 0;
+       }
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
     QGuiApplication app(argc, argv);
+
 
     auto configurationJson=readJsonFromFile(NETSHIELD_DATA_CONFIGURATION);
 

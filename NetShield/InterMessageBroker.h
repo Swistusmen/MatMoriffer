@@ -23,6 +23,9 @@ public slots:
     void udpClicked();
     bool reloadParameters();
 
+    bool tcpStatus(){return driverCommunication->getCurrentTCP();}
+    bool udpStatus(){return driverCommunication->getCurrentUDP();}
+
 private:
     DriverCommunication* driverCommunication;
 };

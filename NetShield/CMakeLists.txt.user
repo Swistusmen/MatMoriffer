@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 5.0.3, 2024-01-13T22:22:22. -->
+<!-- Written by QtCreator 5.0.3, 2024-02-03T17:40:06. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -297,6 +297,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">NetShield</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.NetShield</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">NetShield</value>
+    <value type="bool" key="RunConfiguration.RunAsRoot">true</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>

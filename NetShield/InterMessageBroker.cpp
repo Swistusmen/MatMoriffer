@@ -5,9 +5,6 @@ InterMessageBroker::InterMessageBroker(QObject* parent,DriverCommunication* comm
 
 void InterMessageBroker::tcpClicked(){
     driverCommunication->turn_tcp();
-
-    emit someMessage("dupa");
-
 }
 
 void InterMessageBroker::udpClicked(){

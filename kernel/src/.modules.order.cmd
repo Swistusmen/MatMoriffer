@@ -1,0 +1,1 @@
+savedcmd_/home/michal/Documents/Programming/MatMoriffer/kernel/src/modules.order := {   echo /home/michal/Documents/Programming/MatMoriffer/kernel/src/matmoriffer.o; :; } > /home/michal/Documents/Programming/MatMoriffer/kernel/src/modules.order
