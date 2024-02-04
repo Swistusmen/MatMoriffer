@@ -12,6 +12,15 @@ else
     sudo source ~/.bashrc
 fi
 
+if [ ! -d "/etc/netshield" ]; then
+    echo "NetShield is already installed- updating"
+    sudo mkdir "/etc/netshield"
+    sudo cp $(pwd)/../configuration/config.json "/etc/netshield/config.json"
+else
+    sudo rm "/etc/netshield/config.json"
+    sudo cp $(pwd)/../configuration/config.json "/etc/netshield/config.json"
+fi
+
 application_shortcut=$HOME/Desktop
 if [ -d "$HOME/Desktop" ]; then
     sudo mkdir $HOME/.local/share/applications/netshield

@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
+import QtQuick 2.15
 
 Item {
     Rectangle{
@@ -14,7 +15,7 @@ Item {
         property string unclickedButtonColor: "#e0e0e0"
         property string sideBarBackgroundColor:"#96EFFF"
         property string mainWindowBackgroundColor:"#7B66FF"
-        property string consoleBackgroundColor: "#3887BE"
+        property string consoleBackgroundColor: "lightblue"//"#3887BE"
         property string informationTextBackgroundColor: "white"
 
         Rectangle{
@@ -68,6 +69,7 @@ Item {
 
                     onClicked: {
                         tcpButton.wasClicked=!tcpButton.wasClicked
+                        interMessageBroker.tcpClicked()
                     }
                 }
 
@@ -87,6 +89,7 @@ Item {
 
                     onClicked: {
                         udpButton.wasClicked=!udpButton.wasClicked
+                        interMessageBroker.udpClicked();
                     }
                 }
             }
@@ -150,6 +153,7 @@ Item {
 
                 onClicked: {
                     mainPlan.isTracking=true
+                    interMessageBroker.reloadParameters()
                 }
 
             }
@@ -274,42 +278,34 @@ Item {
             Layout.rightMargin: mainBar.width * 0.025
             Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
 
-            ScrollView{
-                id: consoleScrollView
-                Layout.preferredWidth: mainBar.width * 0.95
-                Layout.preferredHeight: mainBar.height * 0.8
-                Layout.alignment: Qt.AlignTop | Qt.AlignLeft
-                Layout.leftMargin:  mainBar.width * 0.025
-                Layout.topMargin: mainBar.width * 0.025
+            ListView {
+                    id: listView
+                    Layout.preferredWidth: mainBar.width * 0.95
+                    Layout.preferredHeight: mainBar.height * 0.8
+                    Layout.alignment: Qt.AlignTop | Qt.AlignLeft
+                    Layout.leftMargin:  mainBar.width * 0.025
+                    Layout.topMargin: mainBar.width * 0.025
+                    model: ListModel {
+                    }
 
-                //TODO: refactor
-            TextArea{
-                id: consoleTextArea
-                Layout.preferredWidth: mainBar.width * 0.95
-                Layout.preferredHeight: mainBar.height * 0.9
-                Layout.alignment: Qt.AlignTop | Qt.AlignLeft
-                Layout.leftMargin:  mainBar.width * 0.025
-                Layout.topMargin: mainBar.width * 0.025
-                clip: true
-                wrapMode: TextArea.Wrap
-                readOnly: true
-                background: Rectangle{
-                    color: mainPlan.consoleBackgroundColor
-                }
+                    delegate: Item {
+                        width: listView.width
+                        height: 50
 
-                Timer {
-                                interval: 100
-                                running: true
-                                repeat: true
-                                onTriggered: {
-                                    consoleTextArea.text = consoleTextArea.text+getDmesgOutput();
-                                }
+                        Rectangle {
+                            border.color: "black"
+                            border.width: 1
+
+                            width: parent.width
+                            height: parent.height
+                            color: mainPlan.consoleBackgroundColor
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: model.name
                             }
-
-                Component.onCompleted: {
-                                consoleTextArea.text = consoleTextArea.text+getDmesgOutput();
-                            }
-            }
+                        }
+                    }
             }
 
             RowLayout{
@@ -373,7 +369,19 @@ Item {
         }
     }
 
-    function getDmesgOutput() {
-            return "DUPADUPADUPADUPADUPADUPA"
-        }
+    Connections {
+      target: interMessageBroker
+      function onSomeMessage(result) {
+        console.log (result)
+      }
+
+      function onMessageFromDriverSocket(msg){
+          listView.model.append({name: msg});
+      }
+    }
+
+    Component.onCompleted: {
+        tcpButton.wasClicked=interMessageBroker.tcpStatus()
+        udpButton.wasClicked=interMessageBroker.udpStatus()
+    }
 }

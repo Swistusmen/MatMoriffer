@@ -70,5 +70,13 @@ Window {
         color: "blue"
         }
     }
+
+    Tab{
+        title:"Settings"
+        Settings{
+            id: settingsView
+            anchors.fill: parent
+        }
+    }
     }
 }
