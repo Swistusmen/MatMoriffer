@@ -8,7 +8,7 @@
 #include <cstring>
 #include <QProcess>
 
-DriverCommunication::DriverCommunication(bool moduleLoaded){
+DriverCommunication::DriverCommunication(Logger& l, bool moduleLoaded):logger(l){
     if(!moduleLoaded){
         return;
     }
@@ -19,7 +19,7 @@ DriverCommunication::DriverCommunication(bool moduleLoaded){
             return;
         }
     }
-    //TODO: add loading state of the module and updating GUI
+
     loadDriverState();
 }
 
@@ -30,7 +30,7 @@ void DriverCommunication::loadDriverState(){
     FILE* pipe = popen("cat /proc/matmoriffer", "r");
 
     if (!pipe) {
-        std::cerr << "Error opening pipe." << std::endl;
+        logger.addMessage( "Error opening pipe.");
         return;
     }
 
@@ -52,11 +52,11 @@ void DriverCommunication::parseDriverData(const std::string& driverData){
 bool DriverCommunication::checkIfModuleIsLoaded(){
     QString shellResponse;
     if(!executeShellCommand(CHECK_IF_MODULE_IS_LOADED,shellResponse)){
-        internalMessages.emplace_back("Driver not initialized: could not execute shell command");
+        logger.addMessage("Driver not initialized: could not execute shell command");
         return false;
     }
     if(shellResponse==""){
-        internalMessages.emplace_back("Driver not initialized: module not found");
+        logger.addMessage("Driver not initialized: module not found");
         return false;
     }
     return true;
@@ -64,7 +64,7 @@ bool DriverCommunication::checkIfModuleIsLoaded(){
 
 void DriverCommunication::loadModule(){
     QString shellResponse;
-    internalMessages.emplace_back("Attempting to load module");
+    logger.addMessage("Attempting to load module");
     executeShellCommand(LOAD_MODULE,shellResponse);
 }
 
@@ -106,12 +106,12 @@ bool DriverCommunication::reloadMatmorifferParameters()
     return wasTransactionSuccesfull;
 }
 
-bool DriverCommunication::tryToExecuteShellCommand(std::function<int()> f, const std::string& message, bool& currentField, const bool futureField){
+bool DriverCommunication::tryToExecuteShellCommand(std::function<int()> f, std::string&& message, bool& currentField, const bool futureField){
     if(futureField==currentField){
         return true;
     }
     if(!f()){
-        internalMessages.emplace_back(message);
+        logger.addMessage(std::move(message));
         return false;
     }
     currentField=futureField;

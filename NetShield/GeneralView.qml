@@ -58,7 +58,7 @@ Item {
                     Layout.preferredWidth: sideBar.width/2 - 3* mainPlan.sideBarMargin
                     Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
                     Layout.leftMargin: sideBarLayout.leftMarginValue
-                    property bool wasClicked: interMessageBroker.tcpStatus()
+                    property bool wasClicked: false
 
                     background: Rectangle {
                         anchors.fill: parent
@@ -78,7 +78,7 @@ Item {
                     Layout.preferredWidth: sideBar.width/2 - 3* mainPlan.sideBarMargin
                     Layout.preferredHeight: tcpButton.height
                     Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-                    property bool wasClicked: interMessageBroker.udpStatus()
+                    property bool wasClicked: false
 
                     background: Rectangle {
                         anchors.fill: parent
@@ -386,5 +386,10 @@ Item {
         console.log (result)
       }
 
+    }
+
+    Component.onCompleted: {
+        tcpButton.wasClicked=interMessageBroker.tcpStatus()
+        udpButton.wasClicked=interMessageBroker.udpStatus()
     }
 }

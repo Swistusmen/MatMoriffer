@@ -23,6 +23,8 @@ set(PROJECT_SOURCES
         InterMessageBroker.h
         JsonReader.h
         JsonReader.cpp
+        Logger.h
+        Logger.cpp
         Common.h
         qml.qrc
         ../kernel/lib/libmatmoriffer.h

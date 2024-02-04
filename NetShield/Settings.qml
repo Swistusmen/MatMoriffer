@@ -4,13 +4,12 @@ import QtQuick.Controls 2.15
 
 
 Item {
+        property color logColor: "lightblue"
+        property color borderColor: "black"
         ListView {
                 id: listView
                 anchors.fill: parent
                 model: ListModel {
-                    ListElement { name: "Item 1" }
-                    ListElement { name: "Item 2" }
-                    // Dodaj więcej elementów, jeśli chcesz
                 }
 
                 delegate: Item {
@@ -18,9 +17,11 @@ Item {
                     height: 50
 
                     Rectangle {
+                        border.color: borderColor
+
                         width: parent.width
                         height: parent.height
-                        color: index % 2 === 0 ? "lightblue" : "lightgreen"
+                        color: logColor
 
                         Text {
                             anchors.centerIn: parent
@@ -30,23 +31,15 @@ Item {
                 }
         }
 
-        Row {
-            anchors.bottom: parent.bottom
-            spacing: 10
-            TextInput {
-                id: newItemInput
-                width: 200
-                text: "Enter new item"
-            }
+        Component.onCompleted: {
+            logger.loadLogs()
+        }
 
-            Button {
-                text: "Add Item"
-                onClicked: {
-                    if (newItemInput.text.trim() !== "") {
-                        listView.model.append({name: newItemInput.text});
-                        newItemInput.text = "";
-                    }
-                }
+        Connections{
+            target:logger
+
+            function onSentLogMessage(msg){
+                    listView.model.append({name: msg});
             }
         }
 }

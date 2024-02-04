@@ -27,11 +27,11 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-
+    Logger logger;
     auto configurationJson=readJsonFromFile(NETSHIELD_DATA_CONFIGURATION);
 
     bool isModuleLoaded=configurationJson[MODULE_LOADED]=="yes";
-    DriverCommunication driver(isModuleLoaded);
+    DriverCommunication driver(logger,isModuleLoaded);
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 
     InterMessageBroker broker(&app, &driver);
     engine.rootContext()->setContextProperty("interMessageBroker", &broker);
+    engine.rootContext()->setContextProperty("logger",&logger);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
 
