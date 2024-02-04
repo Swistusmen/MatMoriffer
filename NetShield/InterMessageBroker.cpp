@@ -11,8 +11,14 @@ void InterMessageBroker::udpClicked(){
     driverCommunication->turn_udp();
 }
 
-bool InterMessageBroker::reloadParameters()
+void InterMessageBroker::reloadParameters()
 {
-    //tutaj gdzie musi byc mechanizmktory stopuje obecny odczyt
-    return driverCommunication->reloadMatmorifferParameters();
+    driverSocket=driverCommunication->reloadMatmorifferParameters();
+    driverSocket->attachTarget(this);
+}
+
+void InterMessageBroker::absorbMessage(char* msg)
+{
+    QString myQString = QString::fromUtf8(msg);
+    emit messageFromDriverSocket(msg);
 }

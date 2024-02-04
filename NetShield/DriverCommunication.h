@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "Logger.h"
+#include "DriverSocket.h"
 
 #define CHECK_IF_MODULE_IS_LOADED "lsmod | grep matmoriffer"
 #define LOAD_MODULE "sudo insmod matmoriffer.ko"
@@ -17,8 +17,7 @@ public:
 
     void turn_tcp();
     void turn_udp();
-    bool reloadMatmorifferParameters();
-
+    std::unique_ptr<DriverSocket> reloadMatmorifferParameters();
     bool getCurrentTCP(){return currentStatus.tcp;};
     bool getCurrentUDP(){return currentStatus.udp;};
 private:

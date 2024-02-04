@@ -25,6 +25,9 @@ set(PROJECT_SOURCES
         JsonReader.cpp
         Logger.h
         Logger.cpp
+        DriverSocket.h
+        DriverSocket.cpp
+        Target.h
         Common.h
         qml.qrc
         ../kernel/lib/libmatmoriffer.h

@@ -1,7 +1,6 @@
 #include "DriverCommunication.h"
 #include "Common.h"
 #include "../kernel/lib/libmatmoriffer.h"
-#include "../kernel/lib/libmatmoriffer.c"
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
@@ -97,13 +96,13 @@ void DriverCommunication::turn_udp()
     futureStatus.udp=!futureStatus.udp;
 }
 
-bool DriverCommunication::reloadMatmorifferParameters()
+std::unique_ptr<DriverSocket> DriverCommunication::reloadMatmorifferParameters()
 {
     bool wasTransactionSuccesfull=true;
     wasTransactionSuccesfull=tryToExecuteShellCommand(matmoriffer_turn_tcp,"Parameter: tcp failed to change",currentStatus.tcp,futureStatus.tcp);
     wasTransactionSuccesfull=tryToExecuteShellCommand(matmoriffer_turn_udp,"Parameter: udp failed to change",currentStatus.udp,futureStatus.udp);
 
-    return wasTransactionSuccesfull;
+    return std::make_unique<DriverSocket>();
 }
 
 bool DriverCommunication::tryToExecuteShellCommand(std::function<int()> f, std::string&& message, bool& currentField, const bool futureField){

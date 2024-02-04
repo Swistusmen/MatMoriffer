@@ -375,8 +375,9 @@ Item {
         console.log (result)
       }
 
-
-      //TODO: add function which sends netlink messages to here
+      function onMessageFromDriverSocket(msg){
+          listView.model.append({name: msg});
+      }
     }
 
     Component.onCompleted: {
