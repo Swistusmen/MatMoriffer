@@ -18,6 +18,8 @@ Item {
         property string consoleBackgroundColor: "lightblue"//"#3887BE"
         property string informationTextBackgroundColor: "white"
 
+        property var currentTime: 0
+
         Rectangle{
             id: sideBar
             anchors.left: mainPlan.left
@@ -146,7 +148,7 @@ Item {
 
             Button{
                 id: setupNewParameters
-                text: qsTr("Reload parameters")
+                text: qsTr("Reload and start")
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
                 Layout.leftMargin: sideBarLayout.leftMarginValue
                 enabled: (udpButton.wasClicked || tcpButton.wasClicked ) && (amReceiverButton.wasClicked || amSenderButton.wasClicked)
@@ -154,37 +156,31 @@ Item {
                 onClicked: {
                     mainPlan.isTracking=true
                     interMessageBroker.reloadParameters()
+                    if (timerComponent.running) {
+                                        timerComponent.stop();
+                                        timer.text="00:00"
+                                        mainPlan.currentTime=0
+                                        timerComponent.start();
+                                    } else {
+                                        timerComponent.start();
+                                    }
                 }
+
+
 
             }
 
-            Text {
-                id: tracingText
-                text: qsTr("Tracking")
-                Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                Layout.leftMargin: sideBarLayout.leftMarginValue
-           }
-
-            RowLayout{
-                id: trackingControlLayout
-                Layout.preferredWidth: sideBarLayout.width
-                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-                Button {
-                        id:playButton
-                        text: "Start"
-                        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-                        Layout.preferredWidth: sideBar.width/2 - 3* mainPlan.sideBarMargin
-                        Layout.leftMargin: sideBarLayout.leftMarginValue
-                        enabled: mainPlan.isTracking
-                }
-
-                Button {
-                        id: stopButton
-                        text: "Stop"
-                        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-                        Layout.preferredWidth: sideBar.width/2 - 3* mainPlan.sideBarMargin
-                        enabled: mainPlan.isTracking
-                }
+            Button {
+                    id: stopButton
+                    text: "Stop tracking"
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+                    enabled: mainPlan.isTracking
+                    onClicked: {
+                        interMessageBroker.stopTracing()
+                        timerComponent.stop();
+                        mainPlan.currentTime=0
+                        timer.text="00:00"
+                    }
             }
 
             Text {
@@ -206,6 +202,10 @@ Item {
                     Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
                     Layout.leftMargin: sideBarLayout.leftMarginValue
                     enabled: mainPlan.isTracking
+
+                    onClicked: {
+                        listView.model=ListModel
+                    }
                 }
 
                 Button{
@@ -214,6 +214,16 @@ Item {
                     Layout.preferredWidth: sideBar.width/2 - 3* mainPlan.sideBarMargin
                     Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
                     enabled: mainPlan.isTracking
+                }
+            }
+
+            Button{
+                id:showAllLogsButton
+                text: "Show all logs"
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+                enabled: mainPlan.isTracking
+                onClicked: {
+                    interMessageBroker.showAllLogs()
                 }
             }
 
@@ -252,6 +262,10 @@ Item {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.preferredWidth: sideBar.width/2 - 3* mainPlan.sideBarMargin
                     enabled: mainPlan.isTracking
+                    onClicked: {
+                        listView.model=ListModel
+                        interMessageBroker.filterIpAddress(filterAddressInputText.text)
+                    }
                 }
             }
 
@@ -286,6 +300,10 @@ Item {
                     Layout.leftMargin:  mainBar.width * 0.025
                     Layout.topMargin: mainBar.width * 0.025
                     model: ListModel {
+                        ListElement{name:"dupa1"}
+                        ListElement{name:"dupa1"}
+                        ListElement{name:"dupa1"}
+                        ListElement{name:"dupa1"}
                     }
 
                     delegate: Item {
@@ -315,45 +333,6 @@ Item {
                 Layout.preferredWidth: mainColumnLayout.width
 
                 TextArea{
-                    id: packetsInformationText
-                    text: qsTr("Tracking packets")
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                    Layout.leftMargin:  mainBar.width * 0.025
-                    Layout.preferredWidth: mainColumnLayout.width* 0.2
-                    readOnly: true
-                    background: Rectangle{
-                        anchors.fill: parent
-                        color: mainPlan.informationTextBackgroundColor
-                    }
-                }
-
-                TextArea{
-                    id: packetsInformationStatusText
-                    text: qsTr("TCP | UDP")
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                    Layout.preferredWidth: mainColumnLayout.width * 0.15
-
-                    readOnly: true
-                    background: Rectangle{
-                        anchors.fill: parent
-                        color: mainPlan.informationTextBackgroundColor
-                    }
-                }
-
-                TextArea{
-                    id: messagesInformationText
-                    text: qsTr("TCP | UDP")
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                    Layout.preferredWidth: mainColumnLayout.width *0.15
-                    readOnly: true
-                    background: Rectangle{
-                        anchors.fill: parent
-                        color: mainPlan.informationTextBackgroundColor
-                    }
-                }
-
-
-                TextArea{
                     id: timer
                     text:qsTr("00:00")
                     Layout.alignment: Qt.AlignRight | Qt.AlignTop
@@ -364,9 +343,33 @@ Item {
                         anchors.fill: parent
                         color: mainPlan.informationTextBackgroundColor
                     }
+
+                    Timer {
+                        id: timerComponent
+                        interval: 1000
+                        running: false
+                        repeat: true
+                        onTriggered: {
+                            updateTime();
+                        }
+                    }
                 }
             }
         }
+    }
+
+    function updateTime() {
+                    mainPlan.currentTime += 1000;
+                    var seconds = Math.floor(mainPlan.currentTime / 1000);
+                    var minutes = Math.floor(seconds / 60);
+                    seconds = seconds % 60;
+
+                    var formattedTime = padZero(minutes) + ":" + padZero(seconds);
+                    timer.text = formattedTime;
+                }
+
+    function padZero(number) {
+        return number < 10 ? "0" + number : number;
     }
 
     Connections {
@@ -375,9 +378,15 @@ Item {
         console.log (result)
       }
 
-      function onMessageFromDriverSocket(msg){
-          listView.model.append({name: msg});
-      }
+
+    }
+
+
+    Connections{
+        target: interMessageBroker
+        function onMessageFromDriverSocket(mmessage){
+            listView.model.append(message);
+        }
     }
 
     Component.onCompleted: {

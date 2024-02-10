@@ -24,8 +24,6 @@ extern "C"
 
     void netlink_socket(struct NetlinkSocketArguments*);
 
-    void dupa1(char** d);
-
 #ifdef __cplusplus
 }
 #endif

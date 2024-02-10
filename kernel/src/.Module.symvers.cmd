@@ -1,0 +1,1 @@
+savedcmd_/home/michal/Documents/Programming/MatMoriffer/kernel/src/Module.symvers :=  scripts/mod/modpost -m -a      -o /home/michal/Documents/Programming/MatMoriffer/kernel/src/Module.symvers -T /home/michal/Documents/Programming/MatMoriffer/kernel/src/modules.order -i Module.symvers -e 

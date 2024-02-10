@@ -75,7 +75,7 @@ void netlink_socket(struct NetlinkSocketArguments *args)
     struct sockaddr_nl addr;
     struct nlmsghdr *nlh;
 
-    while(1){
+    while(args->continueWork){
         //sending a message
         memset(&addr, 0, sizeof(addr));
         addr.nl_family=AF_NETLINK;
@@ -141,8 +141,4 @@ void netlink_socket(struct NetlinkSocketArguments *args)
     }
 exit:
     close(fd);
-}
-
-void dupa1(char** d){
-    strcpy(*d, "dupa");
 }
