@@ -103,7 +103,7 @@ void netlink_socket(struct NetlinkSocketArguments *args)
         int ret=sendmsg(fd, &msg, 0);
 
         //receive a message
-        while(1){
+        while(args->continueWork){
             free(nlh);
             nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
             struct iovec iov_res;
@@ -131,7 +131,6 @@ void netlink_socket(struct NetlinkSocketArguments *args)
                     break;
                 }
 
-                //to powoduje crash
                 args->buffer[*args->writingIndex] = (char *)NLMSG_DATA(nlh);
                 (*args->writingIndex)++;
             }else{

@@ -25,6 +25,7 @@ public slots:
     void udpClicked();
     void reloadParameters();
     void filterIpAddress(QString);
+    void saveLogs(QString);
     void stopTracing();
     void showAllLogs();
 

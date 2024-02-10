@@ -1,4 +1,5 @@
 #include "InterMessageBroker.h"
+#include <fstream>
 
 InterMessageBroker::InterMessageBroker(QObject* parent,DriverCommunication* communicator): QObject(parent),driverCommunication(communicator) {
 }
@@ -43,5 +44,16 @@ void InterMessageBroker::showAllLogs()
     const auto& vec=analyzer.getAllMessages();
     for(const auto&it: vec){
         emit messageFromDriverSocket(analyzer.makeQStringFromMessage(it));
+    }
+}
+
+void InterMessageBroker::saveLogs(QString filepath){
+    const auto& vec=analyzer.getAllMessages();
+    std::ofstream file(filepath.toStdString());
+    if(file.is_open()){
+        for(const auto&it: vec){
+            file<<analyzer.makeQStringFromMessage(it).toStdString()<<"\n";
+        }
+        file.close();
     }
 }

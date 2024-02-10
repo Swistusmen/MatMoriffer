@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import QtQuick 2.15
+import QtQuick.Dialogs 1.3
 
 Item {
     Rectangle{
@@ -166,8 +167,6 @@ Item {
                                     }
                 }
 
-
-
             }
 
             Button {
@@ -214,7 +213,23 @@ Item {
                     Layout.preferredWidth: sideBar.width/2 - 3* mainPlan.sideBarMargin
                     Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
                     enabled: mainPlan.isTracking
+                    onClicked: {
+                        fileDialog.open()
+                    }
                 }
+
+                FileDialog {
+                    id: fileDialog
+                    title: "Save Logs"
+                    folder: shortcuts.home
+                    selectMultiple: false
+                    selectExisting: false
+
+                    onAccepted: {
+                        interMessageBroke.saveLogs(fileDialog.fileUrls[0].toString())
+                    }
+                }
+
             }
 
             Button{
@@ -300,10 +315,6 @@ Item {
                     Layout.leftMargin:  mainBar.width * 0.025
                     Layout.topMargin: mainBar.width * 0.025
                     model: ListModel {
-                        ListElement{name:"dupa1"}
-                        ListElement{name:"dupa1"}
-                        ListElement{name:"dupa1"}
-                        ListElement{name:"dupa1"}
                     }
 
                     delegate: Item {
