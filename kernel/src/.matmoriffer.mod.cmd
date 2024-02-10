@@ -1,1 +1,0 @@
-savedcmd_/home/michal/Documents/Programming/MatMoriffer/kernel/src/matmoriffer.mod := printf '%s\n'   matmoriffer.o | awk '!x[$$0]++ { print("/home/michal/Documents/Programming/MatMoriffer/kernel/src/"$$0) }' > /home/michal/Documents/Programming/MatMoriffer/kernel/src/matmoriffer.mod
