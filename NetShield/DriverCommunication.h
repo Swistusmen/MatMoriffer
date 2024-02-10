@@ -36,7 +36,7 @@ private:
 
     inline bool tryToExecuteShellCommand(std::function<int()> f, std::string&&, bool&, const bool);
 private:
-    bool workingWithModule {true};
+    bool workingWithModule {false};
     std::vector<std::string> internalMessages;
     DriverStatus futureStatus;
     DriverStatus currentStatus;

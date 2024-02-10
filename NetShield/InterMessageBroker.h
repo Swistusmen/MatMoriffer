@@ -5,6 +5,7 @@
 #include <QQmlEngine>
 #include <QObject>
 #include "DriverCommunication.h"
+#include "Analyzer.h"
 
 class InterMessageBroker : public QObject, public Target
 {
@@ -23,6 +24,10 @@ public slots:
     void tcpClicked();
     void udpClicked();
     void reloadParameters();
+    void filterIpAddress(QString);
+    void saveLogs(QString);
+    void stopTracing();
+    void showAllLogs();
 
     bool tcpStatus(){return driverCommunication->getCurrentTCP();}
     bool udpStatus(){return driverCommunication->getCurrentUDP();}
@@ -30,6 +35,7 @@ public slots:
 private:
     DriverCommunication* driverCommunication;
     std::unique_ptr<DriverSocket> driverSocket;
+    Analyzer analyzer;
 };
 
 #endif // INTERMESSAGEBROKER_H

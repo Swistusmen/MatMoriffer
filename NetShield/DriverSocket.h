@@ -36,7 +36,6 @@ private:
     const int maxBufforMessagesCapacity {NO_MESSAGES};
     const int messageLength {MESSAGE_LENGTH};
     char** rawMessages;
-    std::vector<std::string> messages;
     std::thread driverCommunicationThread;
     std::thread parsingThread;
     struct NetlinkSocketArguments args;

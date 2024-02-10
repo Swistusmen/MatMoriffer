@@ -18,7 +18,7 @@ DriverCommunication::DriverCommunication(Logger& l, bool moduleLoaded):logger(l)
             return;
         }
     }
-
+    workingWithModule=true;
     loadDriverState();
 }
 
@@ -98,11 +98,17 @@ void DriverCommunication::turn_udp()
 
 std::unique_ptr<DriverSocket> DriverCommunication::reloadMatmorifferParameters()
 {
+    if(workingWithModule){
     bool wasTransactionSuccesfull=true;
     wasTransactionSuccesfull=tryToExecuteShellCommand(matmoriffer_turn_tcp,"Parameter: tcp failed to change",currentStatus.tcp,futureStatus.tcp);
     wasTransactionSuccesfull=tryToExecuteShellCommand(matmoriffer_turn_udp,"Parameter: udp failed to change",currentStatus.udp,futureStatus.udp);
 
     return std::make_unique<DriverSocket>();
+    }else{
+        logger.addMessage("Module not present in kernel space, insert it to enable tracking");
+        return nullptr;
+    }
+
 }
 
 bool DriverCommunication::tryToExecuteShellCommand(std::function<int()> f, std::string&& message, bool& currentField, const bool futureField){

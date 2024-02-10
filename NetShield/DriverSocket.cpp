@@ -8,13 +8,7 @@ DriverSocket::DriverSocket(){
         rawMessages[i]=new char[messageLength];
     }
 
-    char *d;
-    d=(char*)malloc(100*sizeof(char));
-    std::thread c(dupa1,&d);
-    c.join();
-    qDebug()<<d;
     args={&continueWork,rawMessages,maxBufforMessagesCapacity,messageLength,&writingIndex,&readingIndex};
-
     driverCommunicationThread=std::thread(netlink_socket,&args);
 }
 

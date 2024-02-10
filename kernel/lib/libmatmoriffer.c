@@ -70,12 +70,10 @@ void netlink_socket(struct NetlinkSocketArguments *args)
         return;
     }
     char message[100];
-    int continue_to_listen;
-    int exit_communication;
     struct sockaddr_nl addr;
     struct nlmsghdr *nlh;
 
-    while(1){
+    while(*args->continueWork==1){
         //sending a message
         memset(&addr, 0, sizeof(addr));
         addr.nl_family=AF_NETLINK;
@@ -103,7 +101,7 @@ void netlink_socket(struct NetlinkSocketArguments *args)
         int ret=sendmsg(fd, &msg, 0);
 
         //receive a message
-        while(1){
+        while(*args->continueWork==1){
             free(nlh);
             nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
             struct iovec iov_res;
@@ -131,18 +129,17 @@ void netlink_socket(struct NetlinkSocketArguments *args)
                     break;
                 }
 
-                //to powoduje crash
                 args->buffer[*args->writingIndex] = (char *)NLMSG_DATA(nlh);
                 (*args->writingIndex)++;
             }else{
                 break;
             }
+
+            if(*args->continueWork!=1){
+                goto exit;
+            }
         }
     }
 exit:
     close(fd);
-}
-
-void dupa1(char** d){
-    strcpy(*d, "dupa");
 }
