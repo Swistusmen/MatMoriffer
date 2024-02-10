@@ -49,7 +49,14 @@ void InterMessageBroker::showAllLogs()
 
 void InterMessageBroker::saveLogs(QString filepath){
     const auto& vec=analyzer.getAllMessages();
-    std::ofstream file(filepath.toStdString());
+
+    std::string str=filepath.toStdString();
+    size_t pos = str.find("file://");
+
+   if (pos != std::string::npos) {
+         str.erase(pos, 7);
+    }
+    std::ofstream file(str);
     if(file.is_open()){
         for(const auto&it: vec){
             file<<analyzer.makeQStringFromMessage(it).toStdString()<<"\n";

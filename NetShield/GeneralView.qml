@@ -203,7 +203,7 @@ Item {
                     enabled: mainPlan.isTracking
 
                     onClicked: {
-                        listView.model=ListModel
+                        listView.model.clear()
                     }
                 }
 
@@ -226,7 +226,7 @@ Item {
                     selectExisting: false
 
                     onAccepted: {
-                        interMessageBroke.saveLogs(fileDialog.fileUrls[0].toString())
+                        interMessageBroker.saveLogs(fileDialog.fileUrls[0].toString())
                     }
                 }
 
@@ -278,7 +278,7 @@ Item {
                     Layout.preferredWidth: sideBar.width/2 - 3* mainPlan.sideBarMargin
                     enabled: mainPlan.isTracking
                     onClicked: {
-                        listView.model=ListModel
+                        listView.model.clear()
                         interMessageBroker.filterIpAddress(filterAddressInputText.text)
                     }
                 }
@@ -395,8 +395,8 @@ Item {
 
     Connections{
         target: interMessageBroker
-        function onMessageFromDriverSocket(mmessage){
-            listView.model.append(message);
+        function onMessageFromDriverSocket(message){
+            listView.model.append({name:message});
         }
     }
 
