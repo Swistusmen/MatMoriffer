@@ -10,6 +10,7 @@ Item {
     property var categories
     property var values
     property var dm
+    property var maxValue: 100
 
     ColumnLayout {
         id: mainLayout
@@ -60,24 +61,32 @@ Item {
 
                 GridView {
                     id: gridView
-                    width: root.width * 0.7 // Ustaw szerokość tablicy
+                    width: root.width * 0.7
                     height: 500
-                    cellWidth: width / 3 // Szerokość komórki
-                    cellHeight: height / 7 // Wysokość komórki
-                    anchors.top: chart.bottom // Umieść siatkę pod wykresem
-                    anchors.horizontalCenter: parent.horizontalCenter // Wyśrodkuj siatkę poziomo
-                    model: 21 // Liczba komórek (3 kolumny * 7 wierszy = 21)
+                    cellWidth: width / 3
+                    cellHeight: height / 7
+                    anchors.top: chart.bottom
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    model: gridModel
 
                     delegate: Rectangle {
                         width: gridView.cellWidth
                         height: gridView.cellHeight
-                        color: index % 2 === 0 ? "lightgray" : "white" // Ustawienie koloru tła na przemian
+                        clip: true
+                        color: index % 2 === 0 ? "lightgray" : "white"
                         border.color: "black"
                         Text {
                             anchors.centerIn: parent
-                            text: (index + 1).toString() // Numerowanie komórek od 1
+                            text: model.text
                         }
                     }
+                }
+
+                ListModel {
+                    id: gridModel
+                    ListElement { text: "ip" }
+                    ListElement { text: "domain" }
+                    ListElement { text: "count" }
                 }
             }
 
@@ -95,7 +104,7 @@ Item {
 
         function onCountForStatistics(counts){
             var myGod = counts.slice()
-
+            root.maxValue=myGod[0]*1.1
             root.values = myGod;
         }
 
@@ -105,9 +114,16 @@ Item {
 
         function onReloadStats(){
             mySeries.axisX.categories = convertToQStringList(root.categories)
+            mySeries.axisX.categories= root.categories.slice(0, Math.min(10, root.categories.length))
             mySeries.insert(0, "ips", root.values)
             mySeries.axisY.min = 0
-            mySeries.axisY.max = 100
+            mySeries.axisY.max = root.maxValue
+
+            for(var i=0;i<root.dm.length;i++){
+                gridModel.append({text:root.categories[i]})
+                 gridModel.append({text:root.dm[i]})
+                 gridModel.append({text:root.values[i].toString()})
+            }
         }
 
     }

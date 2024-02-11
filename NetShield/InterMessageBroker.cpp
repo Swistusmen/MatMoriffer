@@ -73,7 +73,6 @@ void InterMessageBroker::loadDataForStatistics()
 
     for(const auto&it: ips){
         domains.push_back(getDomain(it));
-        qDebug()<<domains.back();
     }
     emit iPForStatistics(ips);
     emit countForStatistics(counts);
