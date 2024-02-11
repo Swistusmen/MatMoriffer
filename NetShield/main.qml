@@ -34,10 +34,8 @@ Window {
     width: parent.width-2*backboardMarginsValue
     height: parent.height-2*backboardMarginsValue
 
-    currentIndex: tabContext.tabIndex;
     Binding
     {
-    target: tabContext;
     property: "tabIndex";
     value: viewTab.currentIndex;
     }
@@ -54,25 +52,14 @@ Window {
     Tab
     {
     title: "Statistics View";
-        Rectangle
-        {
-        anchors.fill: parent
-        color: "yellow"
-        }
-    }
-
-    Tab
-    {
-    title: "Security View";
-        Rectangle
-        {
-        anchors.fill: parent
-        color: "blue"
+        StatisticsView{
+            id: statisticsView
+            anchors.fill: parent
         }
     }
 
     Tab{
-        title:"Settings"
+        title:"Application logs"
         Settings{
             id: settingsView
             anchors.fill: parent

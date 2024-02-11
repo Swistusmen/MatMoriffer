@@ -4,7 +4,7 @@ void Analyzer::cleanSession(){
     messages.clear();
 }
 
-Message Analyzer::addMessage(char* msg){
+Message Analyzer::addMessage(char* msg,char delimiter){
     std::string msgAsString{msg};
     Message properMessage;
     if(msgAsString.at(0)=='U'){
@@ -14,7 +14,10 @@ Message Analyzer::addMessage(char* msg){
         }
 
         int i=0;
-        for(int dots=0;dots<=3&& msgAsString[i]!=',';i++){
+        for(int dots=0;dots<=3;i++){
+            if(!isdigit(msgAsString[i])&& dots==3){
+                break;
+            }
             if(isdigit(msgAsString[i])){
                 properMessage.source+=msgAsString[i];
             }
@@ -25,15 +28,22 @@ Message Analyzer::addMessage(char* msg){
         }
         i++;
 
-        while(msgAsString[i]!=','){
+        while(true){
             if(isdigit(msgAsString[i])){
             properMessage.sPort+=msgAsString[i];
+            }else{
+                if(!properMessage.sPort.empty()){
+                    break;
+                }
             }
             i++;
         }
         i++;
 
-        for(int dots=0;dots<=3 && msgAsString[i]!=',';i++){
+        for(int dots=0;dots<=3;i++){
+            if(!isdigit(msgAsString[i])&& dots==3){
+                break;
+            }
             if(isdigit(msgAsString[i])){
                 properMessage.destination+=msgAsString[i];
             }
@@ -44,9 +54,13 @@ Message Analyzer::addMessage(char* msg){
         }
         i++;
 
-        while(msgAsString[i]!=',' && i<msgAsString.size()){
+        while(true){
             if(isdigit(msgAsString[i])){
             properMessage.dPort+=msgAsString[i];
+            }else{
+                if(!properMessage.dPort.empty()){
+                    break;
+                }
             }
             i++;
         }

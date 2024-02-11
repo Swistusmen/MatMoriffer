@@ -16,10 +16,11 @@ struct Message{
 class Analyzer{
 public:
     void cleanSession();
-    Message addMessage(char*);
+    Message addMessage(char*,char=',');
     QString makeQStringFromMessage(const Message&);
     std::vector<Message> filterIpAddress(QString);
     std::vector<Message>& getAllMessages();
+    std::vector<Message>getCopyOfMessages(){return messages;};
 private:
     std::vector<Message> messages;
 };
