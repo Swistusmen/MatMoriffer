@@ -13,8 +13,11 @@ The kernel module has been tested on Ubuntu 22.04 kernel version 6.2 - 6.5
 I have written scripts that enable you to install dependencies, build and install everything on your machine to run it
 ```
 cd scripts
-sudo s install
+sudo sh install
 ```
+
+## Demands
+To test program you may need to turn off Secure boot, without that kernel module may not be inserted
 
 
 
