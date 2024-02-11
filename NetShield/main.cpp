@@ -1,6 +1,8 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
+#include <QApplication>
+
 #include <QLocale>
 #include <QTranslator>
 #include <QQuickView>
@@ -25,7 +27,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
-    QGuiApplication app(argc, argv);
+    QApplication app(argc,argv);
 
     Logger logger;
     auto configurationJson=readJsonFromFile(NETSHIELD_DATA_CONFIGURATION);

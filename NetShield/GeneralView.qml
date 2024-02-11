@@ -232,14 +232,45 @@ Item {
 
             }
 
+            RowLayout{
+                id: logsControlLayout2
+                Layout.preferredWidth: sideBarLayout.width
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+
             Button{
                 id:showAllLogsButton
-                text: "Show all logs"
+                text: "All logs"
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+                Layout.preferredWidth: sideBar.width/2 - 3* mainPlan.sideBarMargin
                 enabled: mainPlan.isTracking
                 onClicked: {
                     interMessageBroker.showAllLogs()
                 }
+            }
+
+            Button{
+                id:load
+                text: "Load"
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+                Layout.preferredWidth: sideBar.width/2 - 3* mainPlan.sideBarMargin
+                onClicked: {
+                    fileDialog2.open()
+                }
+            }
+
+            FileDialog {
+                id: fileDialog2
+                title: "Load Logs"
+                folder: shortcuts.home
+                selectMultiple: false
+                selectExisting: true
+
+                onAccepted: {
+                    interMessageBroker.loadLogs(fileDialog2.fileUrls[0].toString())
+                }
+            }
+
+
             }
 
             Text{

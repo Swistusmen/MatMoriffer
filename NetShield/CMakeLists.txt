@@ -11,8 +11,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt5 COMPONENTS Core Quick  REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick  REQUIRED)
+find_package(QT NAMES Qt5 COMPONENTS Core Quick Charts REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick Charts REQUIRED)
 
 
 set(PROJECT_SOURCES
@@ -46,7 +46,7 @@ add_executable(NetShield
 target_compile_definitions(NetShield
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(NetShield
-  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick)
+  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::Charts)
 
 set_target_properties(NetShield PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
